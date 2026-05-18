@@ -58,8 +58,13 @@ Uso:
 
 Flags:
   --setup-full              Setup completo do ambiente (1ª execução)
-                            Orquestra: secrets → ArgoCD → Docker build
-                            → K8s deployments → monitoring stack
+                            Orquestra: Terraform → kubectl → secrets
+                            → ArgoCD → Docker build → K8s deployments
+                            → monitoring stack
+
+  --terraform-apply         Provisiona a infraestrutura AWS via Terraform:
+                            VPC, EKS, RDS (x3), Redis, SQS, ECR (x5)
+                            Requer terraform/terraform.tfvars preenchido
 
   --install-monitoring      Instala a stack de monitoramento via Helm:
                             Prometheus + Alertmanager + Loki + Promtail
@@ -94,6 +99,10 @@ Flags:
   --help                    Exibe esta mensagem
 
 Exemplos:
+  # Provisionar infraestrutura apenas
+  ./scripts/tc4-tm.sh --terraform-apply
+
+  # Setup completo (primeira vez, inclui terraform)
   ./scripts/tc4-tm.sh --setup-full
   ./scripts/tc4-tm.sh --install-monitoring
   ./scripts/tc4-tm.sh --update-aws-credentials
@@ -687,6 +696,48 @@ EOF
 }
 
 ###############################################################################
+# --terraform-apply
+###############################################################################
+cmd_terraform_apply() {
+  local TERRAFORM_DIR="$PROJECT_DIR/terraform"
+
+  echo "============================================"
+  echo "  ToggleMaster - Terraform Apply"
+  echo "============================================"
+  echo ""
+
+  if [ ! -f "$TERRAFORM_DIR/terraform.tfvars" ]; then
+    echo "ERRO: terraform/terraform.tfvars nao encontrado."
+    echo "Crie a partir do exemplo:"
+    echo "  cp terraform/terraform.tfvars.example terraform/terraform.tfvars"
+    echo "  # Edite com sua db_password e demais variaveis"
+    exit 1
+  fi
+
+  echo ">>> Inicializando Terraform..."
+  (cd "$TERRAFORM_DIR" && terraform init -input=false)
+  echo ""
+
+  echo ">>> Validando configuracao..."
+  (cd "$TERRAFORM_DIR" && terraform validate)
+  echo ""
+
+  echo ">>> Executando terraform apply (isso pode levar 15-20 minutos)..."
+  echo "    Recursos criados: VPC, EKS, RDS (x3), Redis, SQS, ECR (x5)"
+  echo ""
+  (cd "$TERRAFORM_DIR" && terraform apply -auto-approve -input=false)
+
+  echo ""
+  echo "============================================"
+  echo "  Terraform Apply concluido!"
+  echo "============================================"
+  echo ""
+  echo "Outputs:"
+  (cd "$TERRAFORM_DIR" && terraform output)
+  echo ""
+}
+
+###############################################################################
 # --setup-full
 ###############################################################################
 cmd_setup_full() {
@@ -695,7 +746,10 @@ cmd_setup_full() {
   echo "============================================"
   echo ""
 
-  echo ">>> [0/10] Verificacoes iniciais..."
+  # -------------------------------------------------------------------
+  # [0/12] Verificacoes iniciais (apenas credenciais AWS, sem kubectl)
+  # -------------------------------------------------------------------
+  echo ">>> [0/12] Verificacoes iniciais..."
 
   if [ -z "$AWS_ACCESS_KEY_ID" ]; then
     AWS_ACCESS_KEY_ID=$(aws configure get aws_access_key_id 2>/dev/null || echo "")
@@ -715,18 +769,43 @@ cmd_setup_full() {
   fi
   echo "  AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:0:12}..."
 
-  if ! kubectl cluster-info > /dev/null 2>&1; then
-    echo ">>> kubectl nao conectado. Configurando..."
-    aws eks update-kubeconfig --name togglemaster-cluster --region us-east-1
+  if ! command -v terraform &>/dev/null; then
+    echo "ERRO: terraform nao encontrado no PATH."
+    exit 1
   fi
+  if ! command -v docker &>/dev/null; then
+    echo "ERRO: docker nao encontrado no PATH."
+    exit 1
+  fi
+  echo "  [OK] terraform, docker disponiveis"
+  echo ""
 
+  # -------------------------------------------------------------------
+  # [1/12] Terraform — cria EKS, RDS, Redis, SQS, ECR
+  # -------------------------------------------------------------------
+  echo ">>> [1/12] Provisionando infraestrutura via Terraform..."
+  cmd_terraform_apply
+  echo ""
+
+  # -------------------------------------------------------------------
+  # [2/12] Configurar kubectl apos o EKS estar criado
+  # -------------------------------------------------------------------
+  echo ">>> [2/12] Configurando kubectl para o cluster EKS..."
+  aws eks update-kubeconfig --name togglemaster-cluster --region us-east-1
   kubectl get nodes
   echo ""
 
-  echo ">>> [1/10] Gerando secrets a partir do Terraform..."
+  # -------------------------------------------------------------------
+  # [3/12] Gerar secrets (le outputs do Terraform recem criado)
+  # -------------------------------------------------------------------
+  echo ">>> [3/12] Gerando secrets a partir dos outputs do Terraform..."
   cmd_generate_secrets
+  echo ""
 
-  echo ">>> [2/10] Instalando ArgoCD..."
+  # -------------------------------------------------------------------
+  # [4/12] Instalar ArgoCD
+  # -------------------------------------------------------------------
+  echo ">>> [4/12] Instalando ArgoCD..."
   if kubectl get namespace argocd > /dev/null 2>&1; then
     echo "  ArgoCD namespace ja existe, pulando instalacao."
   else
@@ -736,15 +815,21 @@ cmd_setup_full() {
 
   echo "  Aguardando ArgoCD ficar pronto..."
   kubectl wait --for=condition=available --timeout=300s deployment/argocd-server -n argocd
-
   kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "LoadBalancer"}}' 2>/dev/null || true
   echo "  [OK] ArgoCD instalado"
   echo ""
 
-  echo ">>> [3/10] Aplicando secrets no cluster..."
+  # -------------------------------------------------------------------
+  # [5/12] Aplicar secrets no cluster
+  # -------------------------------------------------------------------
+  echo ">>> [5/12] Aplicando secrets no cluster..."
   cmd_apply_secrets
+  echo ""
 
-  echo ">>> [4/10] Build e push de imagens Docker..."
+  # -------------------------------------------------------------------
+  # [6/12] Build e push de imagens Docker para o ECR
+  # -------------------------------------------------------------------
+  echo ">>> [6/12] Build e push de imagens Docker..."
 
   local ACCOUNT_ID ECR_REGISTRY GITHUB_REPO_URL GITHUB_USER
   ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
@@ -754,7 +839,6 @@ cmd_setup_full() {
 
   echo "  ECR Registry: $ECR_REGISTRY"
   echo "  GitHub User:  $GITHUB_USER"
-  echo "  GitHub Repo:  $GITHUB_REPO_URL"
 
   echo "  Atualizando placeholders nos manifestos..."
   for svc in auth-service flag-service targeting-service evaluation-service analytics-service; do
@@ -776,9 +860,9 @@ cmd_setup_full() {
   if ! git -C "$PROJECT_DIR" diff --cached --quiet 2>/dev/null; then
     git -C "$PROJECT_DIR" commit -m "Update manifests with AWS account $ACCOUNT_ID and GitHub user $GITHUB_USER" --quiet
     git -C "$PROJECT_DIR" push --quiet 2>/dev/null || echo "    [AVISO] git push falhou — faca push manualmente antes do ArgoCD sync"
-    echo "    [OK] Manifestos commitados e enviados ao repositorio"
+    echo "    [OK] Manifestos commitados e enviados"
   else
-    echo "    Manifestos ja estavam atualizados no git"
+    echo "    Manifestos ja estavam atualizados"
   fi
   echo ""
 
@@ -807,17 +891,26 @@ cmd_setup_full() {
   fi
   echo ""
 
-  echo ">>> [5/10] Aplicando ArgoCD Applications..."
+  # -------------------------------------------------------------------
+  # [7/12] Aplicar ArgoCD Applications
+  # -------------------------------------------------------------------
+  echo ">>> [7/12] Aplicando ArgoCD Applications..."
   kubectl apply -f "$PROJECT_DIR/argocd/applications.yaml"
   echo "  [OK] Applications criadas"
   echo ""
 
-  echo ">>> [6/10] Instalando NGINX Ingress Controller..."
+  # -------------------------------------------------------------------
+  # [8/12] Instalar NGINX Ingress
+  # -------------------------------------------------------------------
+  echo ">>> [8/12] Instalando NGINX Ingress Controller..."
   kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.12.0/deploy/static/provider/aws/deploy.yaml 2>/dev/null || true
   echo "  [OK] NGINX Ingress instalado"
   echo ""
 
-  echo ">>> [7/10] Aguardando pods do ToggleMaster ficarem prontos..."
+  # -------------------------------------------------------------------
+  # [9/12] Aguardar pods
+  # -------------------------------------------------------------------
+  echo ">>> [9/12] Aguardando pods do ToggleMaster ficarem prontos..."
   echo "  (isso pode levar 2-5 minutos)"
   for svc in auth-service flag-service targeting-service evaluation-service analytics-service; do
     echo -n "  Aguardando $svc... "
@@ -827,10 +920,17 @@ cmd_setup_full() {
   kubectl get pods -n togglemaster
   echo ""
 
-  echo ">>> [8/10] Gerando SERVICE_API_KEY..."
+  # -------------------------------------------------------------------
+  # [10/12] Gerar SERVICE_API_KEY
+  # -------------------------------------------------------------------
+  echo ">>> [10/12] Gerando SERVICE_API_KEY..."
   cmd_generate_api_key
+  echo ""
 
-  echo ">>> [9/10] Garantindo namespace monitoring e secrets..."
+  # -------------------------------------------------------------------
+  # [11/12] Namespace monitoring + New Relic secret
+  # -------------------------------------------------------------------
+  echo ">>> [11/12] Garantindo namespace monitoring e secrets..."
   kubectl get namespace monitoring > /dev/null 2>&1 || kubectl create namespace monitoring
   echo "  [OK] namespace monitoring"
 
@@ -844,7 +944,10 @@ cmd_setup_full() {
   fi
   echo ""
 
-  echo ">>> [10/10] Instalando Monitoring Stack (Prometheus + Loki + Grafana + OTel)..."
+  # -------------------------------------------------------------------
+  # [12/12] Instalar Monitoring Stack
+  # -------------------------------------------------------------------
+  echo ">>> [12/12] Instalando Monitoring Stack (Prometheus + Loki + Grafana + OTel)..."
   cmd_install_monitoring
   echo ""
 
@@ -1274,6 +1377,7 @@ FLAG="${1:-}"
 
 case "$FLAG" in
   --setup-full)             shift; cmd_setup_full "$@" ;;
+  --terraform-apply)        shift; cmd_terraform_apply "$@" ;;
   --install-monitoring)     shift; cmd_install_monitoring "$@" ;;
   --generate-secrets)       shift; cmd_generate_secrets "$@" ;;
   --apply-secrets)          shift; cmd_apply_secrets "$@" ;;
