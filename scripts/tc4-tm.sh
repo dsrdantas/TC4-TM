@@ -62,8 +62,13 @@ Flags:
                             → ArgoCD → Docker build → K8s deployments
                             → monitoring stack
 
+  --terraform-bootstrap     Cria o S3 bucket e a tabela DynamoDB usados
+                            como backend do Terraform (roda antes do init)
+                            Idempotente: seguro de re-executar
+
   --terraform-apply         Provisiona a infraestrutura AWS via Terraform:
                             VPC, EKS, RDS (x3), Redis, SQS, ECR (x5)
+                            Inclui bootstrap automático do backend
                             Requer terraform/terraform.tfvars preenchido
 
   --install-monitoring      Instala a stack de monitoramento via Helm:
@@ -696,6 +701,68 @@ EOF
 }
 
 ###############################################################################
+# --terraform-bootstrap  (uso interno + flag publica)
+# Cria o S3 bucket e a tabela DynamoDB do backend antes do terraform init.
+###############################################################################
+cmd_terraform_bootstrap() {
+  local REGION="us-east-1"
+  local BUCKET="tc4-tm"
+  local DYNAMO_TABLE="tc4-terraform-lock"
+
+  echo "============================================"
+  echo "  ToggleMaster - Terraform Backend Bootstrap"
+  echo "============================================"
+  echo ""
+  echo "  S3 bucket:      $BUCKET"
+  echo "  DynamoDB table: $DYNAMO_TABLE"
+  echo "  Region:         $REGION"
+  echo ""
+
+  # S3 bucket
+  if aws s3api head-bucket --bucket "$BUCKET" --region "$REGION" 2>/dev/null; then
+    echo "  [OK] S3 bucket '$BUCKET' ja existe"
+  else
+    echo ">>> Criando S3 bucket '$BUCKET'..."
+    # us-east-1 nao aceita LocationConstraint
+    aws s3api create-bucket \
+      --bucket "$BUCKET" \
+      --region "$REGION"
+    aws s3api put-bucket-versioning \
+      --bucket "$BUCKET" \
+      --versioning-configuration Status=Enabled
+    aws s3api put-bucket-encryption \
+      --bucket "$BUCKET" \
+      --server-side-encryption-configuration \
+        '{"Rules":[{"ApplyServerSideEncryptionByDefault":{"SSEAlgorithm":"AES256"}}]}'
+    aws s3api put-public-access-block \
+      --bucket "$BUCKET" \
+      --public-access-block-configuration \
+        "BlockPublicAcls=true,IgnorePublicAcls=true,BlockPublicPolicy=true,RestrictPublicBuckets=true"
+    echo "  [OK] S3 bucket criado e configurado"
+  fi
+
+  # DynamoDB table
+  if aws dynamodb describe-table --table-name "$DYNAMO_TABLE" --region "$REGION" &>/dev/null; then
+    echo "  [OK] DynamoDB table '$DYNAMO_TABLE' ja existe"
+  else
+    echo ">>> Criando DynamoDB table '$DYNAMO_TABLE'..."
+    aws dynamodb create-table \
+      --table-name "$DYNAMO_TABLE" \
+      --attribute-definitions AttributeName=LockID,AttributeType=S \
+      --key-schema AttributeName=LockID,KeyType=HASH \
+      --billing-mode PAY_PER_REQUEST \
+      --region "$REGION"
+    echo "  Aguardando tabela ficar ACTIVE..."
+    aws dynamodb wait table-exists --table-name "$DYNAMO_TABLE" --region "$REGION"
+    echo "  [OK] DynamoDB table criada"
+  fi
+
+  echo ""
+  echo "  Backend pronto. Pode executar terraform init."
+  echo ""
+}
+
+###############################################################################
 # --terraform-apply
 ###############################################################################
 cmd_terraform_apply() {
@@ -714,15 +781,20 @@ cmd_terraform_apply() {
     exit 1
   fi
 
-  echo ">>> Inicializando Terraform..."
+  # Garantir que o backend S3 + DynamoDB existem antes do init
+  echo ">>> [1/4] Verificando/criando backend S3 + DynamoDB..."
+  cmd_terraform_bootstrap
+  echo ""
+
+  echo ">>> [2/4] Inicializando Terraform..."
   (cd "$TERRAFORM_DIR" && terraform init -input=false)
   echo ""
 
-  echo ">>> Validando configuracao..."
+  echo ">>> [3/4] Validando configuracao..."
   (cd "$TERRAFORM_DIR" && terraform validate)
   echo ""
 
-  echo ">>> Executando terraform apply (isso pode levar 15-20 minutos)..."
+  echo ">>> [4/4] Executando terraform apply (isso pode levar 15-20 minutos)..."
   echo "    Recursos criados: VPC, EKS, RDS (x3), Redis, SQS, ECR (x5)"
   echo ""
   (cd "$TERRAFORM_DIR" && terraform apply -auto-approve -input=false)
@@ -1377,6 +1449,7 @@ FLAG="${1:-}"
 
 case "$FLAG" in
   --setup-full)             shift; cmd_setup_full "$@" ;;
+  --terraform-bootstrap)    shift; cmd_terraform_bootstrap "$@" ;;
   --terraform-apply)        shift; cmd_terraform_apply "$@" ;;
   --install-monitoring)     shift; cmd_install_monitoring "$@" ;;
   --generate-secrets)       shift; cmd_generate_secrets "$@" ;;
