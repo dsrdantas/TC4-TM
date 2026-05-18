@@ -1,0 +1,11 @@
+# Copie este arquivo para terraform.tfvars e preencha os valores
+# cp terraform.tfvars.example terraform.tfvars
+
+aws_region   = "us-east-1"
+project_name = "togglemaster"
+
+# AWS Academy - ARN da LabRole (substitua pelo seu)
+lab_role_arn = "arn:aws:iam::ACCOUNT_ID:role/LabRole"
+
+# Senha do PostgreSQL (substitua por uma senha forte)
+db_password = "<SUA_SENHA_SEGURA>"

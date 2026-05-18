@@ -1,0 +1,169 @@
+# Self-Healing Automation
+# Triggered by Alertmanager webhook via GitHub API repository_dispatch
+#
+# Flow: Alert fires -> Alertmanager -> GitHub API -> This workflow -> kubectl rollout restart
+#
+# Manual trigger also available for testing:
+#   gh api repos/rivachef/TC4-ToggleMaster/dispatches \
+#     -f event_type=self-healing \
+#     -f client_payload='{"service":"auth-service","alert":"HighErrorRate5xx"}'
+
+name: Self-Healing
+
+on:
+  repository_dispatch:
+    types: [self-healing]
+
+  # Allow manual trigger for testing
+  workflow_dispatch:
+    inputs:
+      service:
+        description: 'Service to restart (e.g., auth-service)'
+        required: true
+        default: 'auth-service'
+        type: choice
+        options:
+          - auth-service
+          - flag-service
+          - targeting-service
+          - evaluation-service
+          - analytics-service
+      alert:
+        description: 'Alert name (for logging)'
+        required: false
+        default: 'ManualTrigger'
+
+env:
+  CLUSTER_NAME: togglemaster-cluster
+  AWS_REGION: us-east-1
+  NAMESPACE: togglemaster
+
+jobs:
+  self-heal:
+    name: Auto-Remediate Alert
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Determine target service
+        id: target
+        run: |
+          if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
+            SERVICE="${{ github.event.client_payload.service }}"
+            ALERT="${{ github.event.client_payload.alert }}"
+          else
+            SERVICE="${{ github.event.inputs.service }}"
+            ALERT="${{ github.event.inputs.alert }}"
+          fi
+
+          # Default to auth-service if not specified
+          if [ -z "$SERVICE" ]; then
+            SERVICE="auth-service"
+          fi
+          if [ -z "$ALERT" ]; then
+            ALERT="Unknown"
+          fi
+
+          echo "service=$SERVICE" >> $GITHUB_OUTPUT
+          echo "alert=$ALERT" >> $GITHUB_OUTPUT
+          echo "timestamp=$(date -u '+%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_OUTPUT
+
+          echo "========================================="
+          echo "  SELF-HEALING TRIGGERED"
+          echo "========================================="
+          echo "  Alert:     $ALERT"
+          echo "  Service:   $SERVICE"
+          echo "  Namespace: ${{ env.NAMESPACE }}"
+          echo "  Time:      $(date -u)"
+          echo "========================================="
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Configure kubectl
+        run: |
+          aws eks update-kubeconfig --name ${{ env.CLUSTER_NAME }} --region ${{ env.AWS_REGION }}
+
+      - name: Check current pod status (before)
+        run: |
+          echo "=== Current pods status (BEFORE restart) ==="
+          kubectl get pods -n ${{ env.NAMESPACE }} -l app=${{ steps.target.outputs.service }} -o wide
+          echo ""
+          echo "=== Recent events ==="
+          kubectl get events -n ${{ env.NAMESPACE }} --sort-by='.lastTimestamp' | tail -10
+
+      - name: Execute rollout restart
+        run: |
+          echo ">>> Executing: kubectl rollout restart deployment/${{ steps.target.outputs.service }} -n ${{ env.NAMESPACE }}"
+          kubectl rollout restart deployment/${{ steps.target.outputs.service }} -n ${{ env.NAMESPACE }}
+
+          echo ">>> Waiting for rollout to complete..."
+          kubectl rollout status deployment/${{ steps.target.outputs.service }} -n ${{ env.NAMESPACE }} --timeout=120s
+
+      - name: Check pod status (after)
+        run: |
+          echo "=== Pod status (AFTER restart) ==="
+          kubectl get pods -n ${{ env.NAMESPACE }} -l app=${{ steps.target.outputs.service }} -o wide
+          echo ""
+          echo "=== Deployment status ==="
+          kubectl get deployment ${{ steps.target.outputs.service }} -n ${{ env.NAMESPACE }}
+
+      - name: Notify Discord
+        if: always()
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ "${{ job.status }}" = "success" ]; then
+            COLOR=3066993  # Green
+            STATUS="SUCCESS"
+            EMOJI="white_check_mark"
+          else
+            COLOR=15158332  # Red
+            STATUS="FAILED"
+            EMOJI="x"
+          fi
+
+          # Only send if webhook is configured
+          if [ -n "$DISCORD_WEBHOOK" ]; then
+            curl -s -H "Content-Type: application/json" \
+              -d "{
+                \"embeds\": [{
+                  \"title\": \":robot: Self-Healing ${STATUS}\",
+                  \"description\": \"Automated remediation for alert **${{ steps.target.outputs.alert }}**\",
+                  \"color\": ${COLOR},
+                  \"fields\": [
+                    {\"name\": \"Service\", \"value\": \"\`${{ steps.target.outputs.service }}\`\", \"inline\": true},
+                    {\"name\": \"Action\", \"value\": \"\`rollout restart\`\", \"inline\": true},
+                    {\"name\": \"Namespace\", \"value\": \"\`${{ env.NAMESPACE }}\`\", \"inline\": true},
+                    {\"name\": \"Triggered By\", \"value\": \"${{ steps.target.outputs.alert }}\", \"inline\": false},
+                    {\"name\": \"Timestamp\", \"value\": \"${{ steps.target.outputs.timestamp }}\", \"inline\": false},
+                    {\"name\": \"Workflow Run\", \"value\": \"[View Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})\", \"inline\": false}
+                  ],
+                  \"footer\": {\"text\": \"ToggleMaster Self-Healing | Phase 4\"}
+                }]
+              }" \
+              "$DISCORD_WEBHOOK"
+            echo "Discord notification sent."
+          else
+            echo "DISCORD_WEBHOOK_URL not configured. Skipping notification."
+          fi
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "## Self-Healing Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Field | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Alert | ${{ steps.target.outputs.alert }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Service | ${{ steps.target.outputs.service }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Action | \`kubectl rollout restart\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Timestamp | ${{ steps.target.outputs.timestamp }} |" >> $GITHUB_STEP_SUMMARY

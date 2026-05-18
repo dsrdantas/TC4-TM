@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: flag-db-init-job
+  namespace: togglemaster
+spec:
+  backoffLimit: 3
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: psql
+          image: postgres:15
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: flag-db-secret
+                  key: POSTGRES_PASSWORD
+          command:
+            - sh
+            - -c
+            - |
+              echo "Aguardando PostgreSQL..."
+              until pg_isready -h $POSTGRES_HOST -U $POSTGRES_USER -d $POSTGRES_DB; do
+                sleep 5
+              done
+
+              echo "Executando init.sql"
+              psql \
+                -h $POSTGRES_HOST \
+                -U $POSTGRES_USER \
+                -d $POSTGRES_DB \
+                -f /sql/init.sql
+          envFrom:
+            - secretRef:
+                name: flag-db-secret
+          volumeMounts:
+            - name: sql
+              mountPath: /sql
+      volumes:
+        - name: sql
+          configMap:
+            name: flag-db-init-sql

@@ -1,0 +1,87 @@
+# Loki Helm values (grafana/loki chart)
+# Deployed in single-binary mode for simplicity
+
+# -------------------------------------------------------
+# Loki - Log aggregation
+# -------------------------------------------------------
+loki:
+  auth_enabled: false
+
+  commonConfig:
+    replication_factor: 1
+
+  storage:
+    type: filesystem
+
+  schemaConfig:
+    configs:
+      - from: "2024-01-01"
+        store: tsdb
+        object_store: filesystem
+        schema: v13
+        index:
+          prefix: index_
+          period: 24h
+
+  limits_config:
+    retention_period: 72h
+    max_query_series: 5000
+    max_query_parallelism: 2
+
+# Single binary mode (simplest for EKS demo)
+deploymentMode: SingleBinary
+singleBinary:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+  persistence:
+    enabled: false
+  extraVolumes:
+    - name: data
+      emptyDir: {}
+  extraVolumeMounts:
+    - name: data
+      mountPath: /var/loki
+
+# Disable components not needed in single-binary mode
+backend:
+  replicas: 0
+read:
+  replicas: 0
+write:
+  replicas: 0
+
+# -------------------------------------------------------
+# Promtail - Log collector (DaemonSet)
+# -------------------------------------------------------
+# Note: We use the OTel Collector as primary log forwarder,
+# but Promtail is deployed as backup/complement for
+# native Kubernetes log collection.
+
+# Gateway
+gateway:
+  enabled: false
+
+# Disable caches (not needed for demo, saves pods)
+chunksCache:
+  enabled: false
+resultsCache:
+  enabled: false
+
+# Disable test
+test:
+  enabled: false
+
+# Disable monitoring (we have our own Prometheus)
+monitoring:
+  selfMonitoring:
+    enabled: false
+    grafanaAgent:
+      installOperator: false
+  lokiCanary:
+    enabled: false

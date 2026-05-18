@@ -1,0 +1,108 @@
+# PrometheusRule for ToggleMaster alerts
+# These rules are picked up by kube-prometheus-stack's Prometheus instance
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: togglemaster-alerts
+  namespace: monitoring
+  labels:
+    release: prometheus  # Must match kube-prometheus-stack release name
+    app.kubernetes.io/part-of: togglemaster
+spec:
+  groups:
+    # -------------------------------------------------------
+    # HTTP Error Rate Alerts
+    # -------------------------------------------------------
+    - name: togglemaster.http.errors
+      rules:
+        - alert: HighErrorRate5xx
+          expr: |
+            (
+              sum(rate(http_server_request_total{service_name=~".*-service", http_response_status_code=~"5.."}[5m])) by (service_name)
+              /
+              sum(rate(http_server_request_total{service_name=~".*-service"}[5m])) by (service_name)
+            ) > 0.05
+          for: 2m
+          labels:
+            severity: critical
+            team: togglemaster
+          annotations:
+            summary: "High 5xx error rate on {{ $labels.service_name }}"
+            description: "Service {{ $labels.service_name }} has a 5xx error rate above 5% for the last 2 minutes. Current value: {{ $value | humanizePercentage }}"
+
+        - alert: HighErrorRate5xxAuth
+          expr: |
+            (
+              sum(rate(http_server_request_total{service_name="auth-service", http_response_status_code=~"5.."}[5m]))
+              /
+              sum(rate(http_server_request_total{service_name="auth-service"}[5m]))
+            ) > 0.05
+          for: 2m
+          labels:
+            severity: critical
+            team: togglemaster
+            service: auth-service
+          annotations:
+            summary: "High 5xx error rate on auth-service"
+            description: "auth-service 5xx error rate is above 5% for the last 2 minutes. Current: {{ $value | humanizePercentage }}"
+
+    # -------------------------------------------------------
+    # Pod Health Alerts
+    # -------------------------------------------------------
+    - name: togglemaster.pod.health
+      rules:
+        - alert: PodCrashLooping
+          expr: |
+            increase(kube_pod_container_status_restarts_total{namespace="togglemaster"}[15m]) > 3
+          for: 5m
+          labels:
+            severity: warning
+            team: togglemaster
+          annotations:
+            summary: "Pod {{ $labels.pod }} is crash-looping"
+            description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has restarted {{ $value }} times in the last 15 minutes."
+
+        - alert: PodNotReady
+          expr: |
+            kube_pod_status_ready{namespace="togglemaster", condition="true"} == 0
+            unless on(pod, namespace) kube_pod_status_phase{phase="Succeeded"} == 1
+          for: 5m
+          labels:
+            severity: warning
+            team: togglemaster
+          annotations:
+            summary: "Pod {{ $labels.pod }} is not ready"
+            description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has been not ready for 5 minutes."
+
+    # -------------------------------------------------------
+    # Resource Alerts
+    # -------------------------------------------------------
+    - name: togglemaster.resources
+      rules:
+        - alert: HighCPUUsage
+          expr: |
+            sum(rate(container_cpu_usage_seconds_total{namespace="togglemaster"}[5m])) by (pod)
+            /
+            sum(kube_pod_container_resource_limits{namespace="togglemaster", resource="cpu"}) by (pod)
+            > 0.9
+          for: 5m
+          labels:
+            severity: warning
+            team: togglemaster
+          annotations:
+            summary: "High CPU usage on pod {{ $labels.pod }}"
+            description: "Pod {{ $labels.pod }} is using more than 90% of its CPU limit."
+
+        - alert: HighMemoryUsage
+          expr: |
+            sum(container_memory_working_set_bytes{namespace="togglemaster"}) by (pod)
+            /
+            sum(kube_pod_container_resource_limits{namespace="togglemaster", resource="memory"}) by (pod)
+            > 0.9
+          for: 5m
+          labels:
+            severity: warning
+            team: togglemaster
+          annotations:
+            summary: "High memory usage on pod {{ $labels.pod }}"
+            description: "Pod {{ $labels.pod }} is using more than 90% of its memory limit."

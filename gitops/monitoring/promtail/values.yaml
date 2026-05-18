@@ -1,0 +1,35 @@
+# Promtail Helm values
+# Chart: grafana/promtail
+# Collects logs from all pods and forwards to Loki
+
+config:
+  clients:
+    - url: http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
+
+  snippets:
+    # Add extra labels for ToggleMaster microservices
+    pipelineStages:
+      - cri: {}
+      - match:
+          selector: '{namespace="togglemaster"}'
+          stages:
+            - regex:
+                expression: '.*level=(?P<level>\w+).*'
+            - labels:
+                level:
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 100m
+    memory: 128Mi
+
+tolerations:
+  - key: node-role.kubernetes.io/master
+    operator: Exists
+    effect: NoSchedule
+  - key: node-role.kubernetes.io/control-plane
+    operator: Exists
+    effect: NoSchedule

@@ -1,0 +1,36 @@
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/*.tfvars
+terraform/crash.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+venv/
+
+# Go
+vendor/
+microservices/auth-service/auth-service
+microservices/evaluation-service/evaluation-service
+
+# Kubernetes Secrets (managed externally, not tracked in git)
+gitops/**/secret.yaml
+gitops/monitoring/newrelic-secret.yaml
+gitops/monitoring/alerting/alertmanager-secret.yaml

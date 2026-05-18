@@ -1,0 +1,116 @@
+# kube-prometheus-stack Helm values
+# Chart: prometheus-community/kube-prometheus-stack
+# Includes: Prometheus, Alertmanager, Grafana, node-exporter, kube-state-metrics
+
+# -------------------------------------------------------
+# Grafana - Main visualization tool
+# -------------------------------------------------------
+grafana:
+  enabled: true
+  adminUser: admin
+  adminPassword: togglemaster2024
+
+  service:
+    type: LoadBalancer
+
+  # Datasources provisioned automatically
+  additionalDataSources:
+    - name: Loki
+      type: loki
+      url: http://loki.monitoring.svc.cluster.local:3100
+      access: proxy
+      isDefault: false
+      jsonData:
+        maxLines: 1000
+
+  # Sidecar to auto-load dashboards from ConfigMaps
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: monitoring
+      label: grafana_dashboard
+      folderAnnotation: grafana_folder
+      provider:
+        foldersFromFilesStructure: true
+
+  # Grafana config for OTel and alerting
+  grafana.ini:
+    server:
+      root_url: "%(protocol)s://%(domain)s/"
+    unified_alerting:
+      enabled: true
+    alerting:
+      enabled: false
+
+# -------------------------------------------------------
+# Prometheus - Metrics storage and query
+# -------------------------------------------------------
+prometheus:
+  prometheusSpec:
+    # Scrape all ServiceMonitors regardless of labels
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+
+    # Retention
+    retention: 7d
+    retentionSize: "5GB"
+
+    # Resources
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+
+    # Storage (emptyDir - AWS Academy does not support IRSA/EBS CSI)
+    storageSpec: {}
+
+    # Enable remote write receiver for OTel Collector
+    enableRemoteWriteReceiver: true
+
+    # Additional scrape configs for OTel Collector metrics
+    additionalScrapeConfigs:
+      - job_name: 'otel-collector'
+        scrape_interval: 15s
+        static_configs:
+          - targets: ['otel-collector-opentelemetry-collector.monitoring.svc.cluster.local:8888']
+
+# -------------------------------------------------------
+# Alertmanager
+# -------------------------------------------------------
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+
+# -------------------------------------------------------
+# Node Exporter - Host-level metrics
+# -------------------------------------------------------
+nodeExporter:
+  enabled: true
+
+# -------------------------------------------------------
+# Kube State Metrics - K8s object metrics
+# -------------------------------------------------------
+kubeStateMetrics:
+  enabled: true
+
+# -------------------------------------------------------
+# Default rules
+# -------------------------------------------------------
+defaultRules:
+  create: true
+  rules:
+    alertmanager: true
+    etcd: false  # Not accessible in managed EKS
+    kubeProxy: false  # Not accessible in managed EKS
+    kubeSchedulerAlerting: false
+    kubeSchedulerRecording: false

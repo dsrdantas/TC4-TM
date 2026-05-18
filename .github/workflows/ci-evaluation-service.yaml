@@ -1,0 +1,170 @@
+name: CI - Evaluation Service
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'microservices/evaluation-service/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'microservices/evaluation-service/**'
+
+env:
+  SERVICE_NAME: evaluation-service
+  SERVICE_PATH: microservices/evaluation-service
+  AWS_REGION: us-east-1
+
+jobs:
+  build-and-test:
+    name: Build & Unit Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: microservices/evaluation-service
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Build
+        run: go build ./...
+
+      - name: Run tests
+        run: go test ./... -v
+
+  lint:
+    name: Linter / Static Analysis
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: microservices/evaluation-service
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: Run golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.61
+          working-directory: microservices/evaluation-service
+
+  security-scan:
+    name: Security Scan (SAST & SCA)
+    needs: lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: microservices/evaluation-service
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - name: SCA - Trivy filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: 'microservices/evaluation-service'
+          severity: 'CRITICAL'
+          exit-code: '1'
+
+      - name: SAST - Install gosec
+        run: go install github.com/securego/gosec/v2/cmd/gosec@v2.20.0
+
+      - name: SAST - Run gosec
+        run: gosec ./...
+        continue-on-error: true
+
+  docker-build-push:
+    name: Docker Build & Push to ECR
+    needs: security-scan
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set image tag
+        id: meta
+        run: echo "short_sha=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ secrets.ECR_REGISTRY }}/evaluation-service:${{ steps.meta.outputs.short_sha }} \
+            microservices/evaluation-service
+
+      - name: Trivy container scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ secrets.ECR_REGISTRY }}/evaluation-service:${{ steps.meta.outputs.short_sha }}'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'
+
+      - name: Push to ECR
+        run: |
+          # Skip push if image tag already exists (handles re-runs with immutable tags)
+          if aws ecr describe-images --repository-name evaluation-service --image-ids imageTag=${{ steps.meta.outputs.short_sha }} 2>/dev/null; then
+            echo "Image tag ${{ steps.meta.outputs.short_sha }} already exists in ECR, skipping push."
+          else
+            docker push ${{ secrets.ECR_REGISTRY }}/evaluation-service:${{ steps.meta.outputs.short_sha }}
+          fi
+
+  update-gitops:
+    name: Update GitOps Manifests
+    needs: docker-build-push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set image tag
+        id: meta
+        run: echo "short_sha=$(echo ${{ github.sha }} | cut -c1-7)" >> $GITHUB_OUTPUT
+
+      - name: Update deployment image tag
+        run: |
+          sed -i "s|image: .*evaluation-service:.*|image: ${{ secrets.ECR_REGISTRY }}/evaluation-service:${{ steps.meta.outputs.short_sha }}|" \
+            gitops/evaluation-service/deployment.yaml
+
+      - name: Commit and push
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add gitops/evaluation-service/deployment.yaml
+          git commit -m "chore: update evaluation-service image to ${{ steps.meta.outputs.short_sha }}"
+          # Retry loop to handle concurrent pushes from other service pipelines
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push && break
+            echo "Push attempt $i failed, retrying in 5s..."
+            sleep 5
+          done

@@ -1,0 +1,12 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: evaluation-service-pdb
+  namespace: togglemaster
+  labels:
+    app: evaluation-service
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: evaluation-service

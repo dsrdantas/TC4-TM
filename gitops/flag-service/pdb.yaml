@@ -1,0 +1,12 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: flag-service-pdb
+  namespace: togglemaster
+  labels:
+    app: flag-service
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: flag-service
