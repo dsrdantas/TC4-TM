@@ -422,17 +422,30 @@ cmd_generate_api_key() {
   local PF_PID=$!
   sleep 3
 
-  echo ">>> Obtendo MASTER_KEY do secret..."
-  local MASTER_KEY
-  MASTER_KEY=$(kubectl get secret auth-service-secret -n togglemaster \
-    -o jsonpath='{.data.MASTER_KEY}' | base64 -d)
+  echo ">>> Obtendo MASTER_KEY do pod em execucao..."
+  # Lemos direto do env do pod para garantir o valor exato que ele usa em memoria.
+  # Ler do secret pode retornar um valor desatualizado se o pod nao foi reiniciado
+  # apos o ultimo apply-secrets.
+  local AUTH_POD MASTER_KEY
+  AUTH_POD=$(kubectl get pods -n togglemaster -l app=auth-service \
+    -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
+
+  if [ -n "$AUTH_POD" ]; then
+    MASTER_KEY=$(kubectl exec -n togglemaster "$AUTH_POD" -- printenv MASTER_KEY 2>/dev/null | tr -d '\n\r')
+  fi
+
+  # Fallback: ler do secret com strip de newline
+  if [ -z "$MASTER_KEY" ]; then
+    MASTER_KEY=$(kubectl get secret auth-service-secret -n togglemaster \
+      -o jsonpath='{.data.MASTER_KEY}' 2>/dev/null | base64 -d | tr -d '\n\r')
+  fi
 
   if [ -z "$MASTER_KEY" ]; then
     kill "$PF_PID" 2>/dev/null || true
-    echo "ERRO: MASTER_KEY nao encontrada no secret auth-service-secret"
+    echo "ERRO: MASTER_KEY nao encontrada (pod: $AUTH_POD)"
     exit 1
   fi
-  echo "  [OK] MASTER_KEY: ${MASTER_KEY:0:8}..."
+  echo "  [OK] MASTER_KEY: ${MASTER_KEY:0:8}... (lida do pod $AUTH_POD)"
   echo ""
 
   echo ">>> Gerando API key via auth-service..."
@@ -892,10 +905,15 @@ cmd_setup_full() {
   echo ""
 
   # -------------------------------------------------------------------
-  # [5/12] Aplicar secrets no cluster
+  # [5/12] Aplicar secrets no cluster e reiniciar auth-service
   # -------------------------------------------------------------------
   echo ">>> [5/12] Aplicando secrets no cluster..."
   cmd_apply_secrets
+
+  echo "  Reiniciando auth-service para carregar o novo MASTER_KEY..."
+  kubectl rollout restart deployment/auth-service -n togglemaster 2>/dev/null || true
+  kubectl rollout status deployment/auth-service -n togglemaster --timeout=120s 2>/dev/null || true
+  echo "  [OK] auth-service atualizado com o novo MASTER_KEY"
   echo ""
 
   # -------------------------------------------------------------------
@@ -912,19 +930,28 @@ cmd_setup_full() {
   echo "  ECR Registry: $ECR_REGISTRY"
   echo "  GitHub User:  $GITHUB_USER"
 
-  echo "  Atualizando placeholders nos manifestos..."
+  echo "  Atualizando ECR nos manifestos..."
   for svc in auth-service flag-service targeting-service evaluation-service analytics-service; do
     local DEPLOY_FILE="$PROJECT_DIR/gitops/$svc/deployment.yaml"
-    if grep -q '<AWS_ACCOUNT_ID>' "$DEPLOY_FILE" 2>/dev/null; then
-      sed -i.bak "s|<AWS_ACCOUNT_ID>|$ACCOUNT_ID|g" "$DEPLOY_FILE" && rm -f "$DEPLOY_FILE.bak"
-      echo "    [OK] $svc deployment.yaml atualizado"
+    if [ ! -f "$DEPLOY_FILE" ]; then
+      echo "    [SKIP] $DEPLOY_FILE nao encontrado"
+      continue
     fi
+    # Substitui placeholder (<AWS_ACCOUNT_ID>) OU qualquer account ID de 12 digitos
+    # ja presente na URL do ECR — cobre re-execucoes sem precisar de destroy.
+    sed -i.bak "s|<AWS_ACCOUNT_ID>\.dkr\.ecr|${ACCOUNT_ID}.dkr.ecr|g" "$DEPLOY_FILE"
+    rm -f "$DEPLOY_FILE.bak"
+    sed -i.bak -E "s|[0-9]{12}\.dkr\.ecr|${ACCOUNT_ID}.dkr.ecr|g" "$DEPLOY_FILE"
+    rm -f "$DEPLOY_FILE.bak"
+    echo "    [OK] $svc → $ECR_REGISTRY/$svc:latest"
   done
 
   local ARGOCD_FILE="$PROJECT_DIR/argocd/applications.yaml"
-  if grep -q '<GITHUB_USER>' "$ARGOCD_FILE" 2>/dev/null; then
-    sed -i.bak "s|<GITHUB_USER>|$GITHUB_USER|g" "$ARGOCD_FILE" && rm -f "$ARGOCD_FILE.bak"
-    echo "    [OK] argocd/applications.yaml atualizado"
+  if [ -f "$ARGOCD_FILE" ]; then
+    # Substitui placeholder OU qualquer username GitHub ja presente
+    sed -i.bak "s|<GITHUB_USER>|$GITHUB_USER|g" "$ARGOCD_FILE"
+    rm -f "$ARGOCD_FILE.bak"
+    echo "    [OK] argocd/applications.yaml atualizado (GitHub: $GITHUB_USER)"
   fi
 
   echo "  Commitando manifestos atualizados no git..."
