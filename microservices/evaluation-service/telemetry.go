@@ -71,7 +71,11 @@ func initTelemetry(ctx context.Context, serviceName string) func() {
 	)
 	if err != nil {
 		log.Printf("[OTel] Failed to create metric exporter: %v", err)
-		return func() { tp.Shutdown(ctx) }
+		return func() {
+			if err := tp.Shutdown(ctx); err != nil {
+				log.Printf("[OTel] Error shutting down tracer: %v", err)
+			}
+		}
 	}
 
 	mp := metric.NewMeterProvider(
@@ -85,8 +89,12 @@ func initTelemetry(ctx context.Context, serviceName string) func() {
 	return func() {
 		shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		tp.Shutdown(shutdownCtx)
-		mp.Shutdown(shutdownCtx)
+		if err := tp.Shutdown(shutdownCtx); err != nil {
+			log.Printf("[OTel] Error shutting down tracer: %v", err)
+		}
+		if err := mp.Shutdown(shutdownCtx); err != nil {
+			log.Printf("[OTel] Error shutting down meter: %v", err)
+		}
 		log.Println("[OTel] Telemetry shut down successfully")
 	}
 }
