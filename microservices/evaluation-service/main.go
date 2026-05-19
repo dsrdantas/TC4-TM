@@ -16,8 +16,6 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
-// Contexto global para o Redis
-var ctx = context.Background()
 
 // App struct para injeção de dependência
 type App struct {
@@ -76,8 +74,10 @@ func main() {
 		log.Fatalf("Não foi possível parsear a URL do Redis: %v", err)
 	}
 	rdb := redis.NewClient(opt)
-	if _, err := rdb.Ping(ctx).Result(); err != nil {
-		log.Fatalf("Não foi possível conectar ao Redis: %v", err)
+	pingCtx, pingCancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer pingCancel()
+	if _, err := rdb.Ping(pingCtx).Result(); err != nil {
+		log.Fatalf("Não foi possível conectar ao Redis (timeout 10s): %v", err)
 	}
 	log.Println("Conectado ao Redis com sucesso!")
 
@@ -101,9 +101,11 @@ func main() {
 	}
 
 
-	// Cliente HTTP (com timeout)
+	// Cliente HTTP com OTel transport — propaga o trace context (W3C) nas chamadas
+	// para flag-service e targeting-service, gerando spans filhos no distributed trace.
 	httpClient := &http.Client{
-		Timeout: 5 * time.Second,
+		Transport: otelhttp.NewTransport(http.DefaultTransport),
+		Timeout:   5 * time.Second,
 	}
 
 	// Cria a instância da App
