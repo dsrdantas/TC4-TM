@@ -614,7 +614,28 @@ cmd_install_monitoring() {
 
   rm -f "$DASHBOARD_TMP"
 
+  echo "Deploying self-healing bridge..."
+  local BRIDGE_DIR="$MONITORING_DIR/self-healing-bridge"
+  local BRIDGE_SECRET="$BRIDGE_DIR/secret.yaml"
+  if [ -f "$BRIDGE_SECRET" ]; then
+    kubectl apply -f "$BRIDGE_SECRET"
+    echo "  [OK] self-healing-bridge-secret aplicado"
+  else
+    log_warn "  $BRIDGE_SECRET nao encontrado — bridge iniciara sem GITHUB_TOKEN (self-healing desativado)"
+    echo "    Para ativar:"
+    echo "    cp gitops/monitoring/self-healing-bridge/secret.yaml.example gitops/monitoring/self-healing-bridge/secret.yaml"
+    echo "    # Edite com seu GitHub PAT (Actions: write em dsrdantas/TC4-TM)"
+    echo "    kubectl apply -f gitops/monitoring/self-healing-bridge/secret.yaml"
+    # Cria secret vazio para nao bloquear o deploy
+    kubectl create secret generic self-healing-bridge-secret \
+      --from-literal=GITHUB_TOKEN="" \
+      --namespace monitoring \
+      --dry-run=client -o yaml | kubectl apply -f - 2>/dev/null || true
+  fi
+  kubectl apply -f "$BRIDGE_DIR/deployment.yaml"
+  echo "  [OK] self-healing-bridge deployado"
   echo ""
+
   echo "--- Access Information ---"
   echo ""
   echo "Grafana:"
@@ -1372,6 +1393,14 @@ for eni in enis:
     done
     log_ok "Placeholders ECR restaurados"
   fi
+
+  log_info "Restaurando tags de imagem para :latest..."
+  for svc in auth-service flag-service targeting-service evaluation-service analytics-service; do
+    local DEPLOY_FILE_TAG="$PROJECT_DIR/gitops/$svc/deployment.yaml"
+    sed -i.bak -E "s|(\.dkr\.ecr\.[^/]+/[^:]+):[a-f0-9]{7,}|\1:latest|g" "$DEPLOY_FILE_TAG" 2>/dev/null
+    rm -f "$DEPLOY_FILE_TAG.bak" 2>/dev/null || true
+  done
+  log_ok "Tags de imagem restauradas para :latest"
 
   if [ -n "$GITHUB_USER" ]; then
     local ARGOCD_FILE="$PROJECT_DIR/argocd/applications.yaml"

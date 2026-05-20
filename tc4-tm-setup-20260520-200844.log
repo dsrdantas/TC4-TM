@@ -1,0 +1,3151 @@
+============================================
+  ToggleMaster - Setup Completo
+============================================
+
+>>> [0/12] Verificacoes iniciais...
+  AWS_ACCESS_KEY_ID: ASIA3IYPFDKG...
+  [OK] terraform, docker disponiveis
+
+>>> [1/12] Provisionando infraestrutura via Terraform...
+============================================
+  ToggleMaster - Terraform Apply
+============================================
+
+>>> [1/4] Verificando/criando backend S3 + DynamoDB...
+============================================
+  ToggleMaster - Terraform Backend Bootstrap
+============================================
+
+  S3 bucket:      tc4-tm
+  DynamoDB table: tc4-terraform-lock
+  Region:         us-east-1
+
+{
+    "BucketRegion": "us-east-1",
+    "AccessPointAlias": false
+}
+  [OK] S3 bucket 'tc4-tm' ja existe
+  [OK] DynamoDB table 'tc4-terraform-lock' ja existe
+
+  Backend pronto. Pode executar terraform init.
+
+
+>>> [2/4] Inicializando Terraform...
+
+[0m[1mInitializing the backend...[0m
+[0m[1mInitializing modules...[0m
+
+[0m[1mInitializing provider plugins...[0m
+- Reusing previous version of hashicorp/aws from the dependency lock file
+- Using previously-installed hashicorp/aws v5.100.0
+
+[0m[1m[32mTerraform has been successfully initialized![0m[32m[0m
+[0m[32m
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.[0m
+
+>>> [3/4] Validando configuracao...
+[32m[1mSuccess![0m The configuration is valid.
+[0m
+
+>>> [4/4] Executando terraform apply (isso pode levar 15-20 minutos)...
+    Recursos criados: VPC, EKS, RDS (x3), Redis, SQS, ECR (x5)
+
+Acquiring state lock. This may take a few moments...
+
+Terraform used the selected providers to generate the following execution
+plan. Resource actions are indicated with the following symbols:
+  [32m+[0m create[0m
+
+Terraform will perform the following actions:
+
+[1m  # module.databases.aws_db_instance.auth[0m will be created
+[0m  [32m+[0m[0m resource "aws_db_instance" "auth" {
+      [32m+[0m[0m address                               = (known after apply)
+      [32m+[0m[0m allocated_storage                     = 20
+      [32m+[0m[0m apply_immediately                     = false
+      [32m+[0m[0m arn                                   = (known after apply)
+      [32m+[0m[0m auto_minor_version_upgrade            = true
+      [32m+[0m[0m availability_zone                     = (known after apply)
+      [32m+[0m[0m backup_retention_period               = (known after apply)
+      [32m+[0m[0m backup_target                         = (known after apply)
+      [32m+[0m[0m backup_window                         = (known after apply)
+      [32m+[0m[0m ca_cert_identifier                    = (known after apply)
+      [32m+[0m[0m character_set_name                    = (known after apply)
+      [32m+[0m[0m copy_tags_to_snapshot                 = false
+      [32m+[0m[0m database_insights_mode                = (known after apply)
+      [32m+[0m[0m db_name                               = "auth_db"
+      [32m+[0m[0m db_subnet_group_name                  = "togglemaster-rds-subnet-group"
+      [32m+[0m[0m dedicated_log_volume                  = false
+      [32m+[0m[0m delete_automated_backups              = true
+      [32m+[0m[0m domain_fqdn                           = (known after apply)
+      [32m+[0m[0m endpoint                              = (known after apply)
+      [32m+[0m[0m engine                                = "postgres"
+      [32m+[0m[0m engine_lifecycle_support              = (known after apply)
+      [32m+[0m[0m engine_version                        = "17.4"
+      [32m+[0m[0m engine_version_actual                 = (known after apply)
+      [32m+[0m[0m hosted_zone_id                        = (known after apply)
+      [32m+[0m[0m id                                    = (known after apply)
+      [32m+[0m[0m identifier                            = "togglemaster-auth-db"
+      [32m+[0m[0m identifier_prefix                     = (known after apply)
+      [32m+[0m[0m instance_class                        = "db.t3.micro"
+      [32m+[0m[0m iops                                  = (known after apply)
+      [32m+[0m[0m kms_key_id                            = (known after apply)
+      [32m+[0m[0m latest_restorable_time                = (known after apply)
+      [32m+[0m[0m license_model                         = (known after apply)
+      [32m+[0m[0m listener_endpoint                     = (known after apply)
+      [32m+[0m[0m maintenance_window                    = (known after apply)
+      [32m+[0m[0m master_user_secret                    = (known after apply)
+      [32m+[0m[0m master_user_secret_kms_key_id         = (known after apply)
+      [32m+[0m[0m monitoring_interval                   = 0
+      [32m+[0m[0m monitoring_role_arn                   = (known after apply)
+      [32m+[0m[0m multi_az                              = (known after apply)
+      [32m+[0m[0m nchar_character_set_name              = (known after apply)
+      [32m+[0m[0m network_type                          = (known after apply)
+      [32m+[0m[0m option_group_name                     = (known after apply)
+      [32m+[0m[0m parameter_group_name                  = (known after apply)
+      [32m+[0m[0m password                              = (sensitive value)
+      [32m+[0m[0m performance_insights_enabled          = false
+      [32m+[0m[0m performance_insights_kms_key_id       = (known after apply)
+      [32m+[0m[0m performance_insights_retention_period = (known after apply)
+      [32m+[0m[0m port                                  = (known after apply)
+      [32m+[0m[0m publicly_accessible                   = false
+      [32m+[0m[0m replica_mode                          = (known after apply)
+      [32m+[0m[0m replicas                              = (known after apply)
+      [32m+[0m[0m resource_id                           = (known after apply)
+      [32m+[0m[0m skip_final_snapshot                   = true
+      [32m+[0m[0m snapshot_identifier                   = (known after apply)
+      [32m+[0m[0m status                                = (known after apply)
+      [32m+[0m[0m storage_throughput                    = (known after apply)
+      [32m+[0m[0m storage_type                          = "gp2"
+      [32m+[0m[0m tags                                  = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-auth-db"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+          [32m+[0m[0m "Service"     = "auth-service"
+        }
+      [32m+[0m[0m tags_all                              = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-auth-db"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+          [32m+[0m[0m "Service"     = "auth-service"
+        }
+      [32m+[0m[0m timezone                              = (known after apply)
+      [32m+[0m[0m username                              = "tm_user"
+      [32m+[0m[0m vpc_security_group_ids                = (known after apply)
+    }
+
+[1m  # module.databases.aws_db_instance.flag[0m will be created
+[0m  [32m+[0m[0m resource "aws_db_instance" "flag" {
+      [32m+[0m[0m address                               = (known after apply)
+      [32m+[0m[0m allocated_storage                     = 20
+      [32m+[0m[0m apply_immediately                     = false
+      [32m+[0m[0m arn                                   = (known after apply)
+      [32m+[0m[0m auto_minor_version_upgrade            = true
+      [32m+[0m[0m availability_zone                     = (known after apply)
+      [32m+[0m[0m backup_retention_period               = (known after apply)
+      [32m+[0m[0m backup_target                         = (known after apply)
+      [32m+[0m[0m backup_window                         = (known after apply)
+      [32m+[0m[0m ca_cert_identifier                    = (known after apply)
+      [32m+[0m[0m character_set_name                    = (known after apply)
+      [32m+[0m[0m copy_tags_to_snapshot                 = false
+      [32m+[0m[0m database_insights_mode                = (known after apply)
+      [32m+[0m[0m db_name                               = "flag_db"
+      [32m+[0m[0m db_subnet_group_name                  = "togglemaster-rds-subnet-group"
+      [32m+[0m[0m dedicated_log_volume                  = false
+      [32m+[0m[0m delete_automated_backups              = true
+      [32m+[0m[0m domain_fqdn                           = (known after apply)
+      [32m+[0m[0m endpoint                              = (known after apply)
+      [32m+[0m[0m engine                                = "postgres"
+      [32m+[0m[0m engine_lifecycle_support              = (known after apply)
+      [32m+[0m[0m engine_version                        = "17.4"
+      [32m+[0m[0m engine_version_actual                 = (known after apply)
+      [32m+[0m[0m hosted_zone_id                        = (known after apply)
+      [32m+[0m[0m id                                    = (known after apply)
+      [32m+[0m[0m identifier                            = "togglemaster-flag-db"
+      [32m+[0m[0m identifier_prefix                     = (known after apply)
+      [32m+[0m[0m instance_class                        = "db.t3.micro"
+      [32m+[0m[0m iops                                  = (known after apply)
+      [32m+[0m[0m kms_key_id                            = (known after apply)
+      [32m+[0m[0m latest_restorable_time                = (known after apply)
+      [32m+[0m[0m license_model                         = (known after apply)
+      [32m+[0m[0m listener_endpoint                     = (known after apply)
+      [32m+[0m[0m maintenance_window                    = (known after apply)
+      [32m+[0m[0m master_user_secret                    = (known after apply)
+      [32m+[0m[0m master_user_secret_kms_key_id         = (known after apply)
+      [32m+[0m[0m monitoring_interval                   = 0
+      [32m+[0m[0m monitoring_role_arn                   = (known after apply)
+      [32m+[0m[0m multi_az                              = (known after apply)
+      [32m+[0m[0m nchar_character_set_name              = (known after apply)
+      [32m+[0m[0m network_type                          = (known after apply)
+      [32m+[0m[0m option_group_name                     = (known after apply)
+      [32m+[0m[0m parameter_group_name                  = (known after apply)
+      [32m+[0m[0m password                              = (sensitive value)
+      [32m+[0m[0m performance_insights_enabled          = false
+      [32m+[0m[0m performance_insights_kms_key_id       = (known after apply)
+      [32m+[0m[0m performance_insights_retention_period = (known after apply)
+      [32m+[0m[0m port                                  = (known after apply)
+      [32m+[0m[0m publicly_accessible                   = false
+      [32m+[0m[0m replica_mode                          = (known after apply)
+      [32m+[0m[0m replicas                              = (known after apply)
+      [32m+[0m[0m resource_id                           = (known after apply)
+      [32m+[0m[0m skip_final_snapshot                   = true
+      [32m+[0m[0m snapshot_identifier                   = (known after apply)
+      [32m+[0m[0m status                                = (known after apply)
+      [32m+[0m[0m storage_throughput                    = (known after apply)
+      [32m+[0m[0m storage_type                          = "gp2"
+      [32m+[0m[0m tags                                  = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-flag-db"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+          [32m+[0m[0m "Service"     = "flag-service"
+        }
+      [32m+[0m[0m tags_all                              = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-flag-db"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+          [32m+[0m[0m "Service"     = "flag-service"
+        }
+      [32m+[0m[0m timezone                              = (known after apply)
+      [32m+[0m[0m username                              = "tm_user"
+      [32m+[0m[0m vpc_security_group_ids                = (known after apply)
+    }
+
+[1m  # module.databases.aws_db_instance.targeting[0m will be created
+[0m  [32m+[0m[0m resource "aws_db_instance" "targeting" {
+      [32m+[0m[0m address                               = (known after apply)
+      [32m+[0m[0m allocated_storage                     = 20
+      [32m+[0m[0m apply_immediately                     = false
+      [32m+[0m[0m arn                                   = (known after apply)
+      [32m+[0m[0m auto_minor_version_upgrade            = true
+      [32m+[0m[0m availability_zone                     = (known after apply)
+      [32m+[0m[0m backup_retention_period               = (known after apply)
+      [32m+[0m[0m backup_target                         = (known after apply)
+      [32m+[0m[0m backup_window                         = (known after apply)
+      [32m+[0m[0m ca_cert_identifier                    = (known after apply)
+      [32m+[0m[0m character_set_name                    = (known after apply)
+      [32m+[0m[0m copy_tags_to_snapshot                 = false
+      [32m+[0m[0m database_insights_mode                = (known after apply)
+      [32m+[0m[0m db_name                               = "targeting_db"
+      [32m+[0m[0m db_subnet_group_name                  = "togglemaster-rds-subnet-group"
+      [32m+[0m[0m dedicated_log_volume                  = false
+      [32m+[0m[0m delete_automated_backups              = true
+      [32m+[0m[0m domain_fqdn                           = (known after apply)
+      [32m+[0m[0m endpoint                              = (known after apply)
+      [32m+[0m[0m engine                                = "postgres"
+      [32m+[0m[0m engine_lifecycle_support              = (known after apply)
+      [32m+[0m[0m engine_version                        = "17.4"
+      [32m+[0m[0m engine_version_actual                 = (known after apply)
+      [32m+[0m[0m hosted_zone_id                        = (known after apply)
+      [32m+[0m[0m id                                    = (known after apply)
+      [32m+[0m[0m identifier                            = "togglemaster-targeting-db"
+      [32m+[0m[0m identifier_prefix                     = (known after apply)
+      [32m+[0m[0m instance_class                        = "db.t3.micro"
+      [32m+[0m[0m iops                                  = (known after apply)
+      [32m+[0m[0m kms_key_id                            = (known after apply)
+      [32m+[0m[0m latest_restorable_time                = (known after apply)
+      [32m+[0m[0m license_model                         = (known after apply)
+      [32m+[0m[0m listener_endpoint                     = (known after apply)
+      [32m+[0m[0m maintenance_window                    = (known after apply)
+      [32m+[0m[0m master_user_secret                    = (known after apply)
+      [32m+[0m[0m master_user_secret_kms_key_id         = (known after apply)
+      [32m+[0m[0m monitoring_interval                   = 0
+      [32m+[0m[0m monitoring_role_arn                   = (known after apply)
+      [32m+[0m[0m multi_az                              = (known after apply)
+      [32m+[0m[0m nchar_character_set_name              = (known after apply)
+      [32m+[0m[0m network_type                          = (known after apply)
+      [32m+[0m[0m option_group_name                     = (known after apply)
+      [32m+[0m[0m parameter_group_name                  = (known after apply)
+      [32m+[0m[0m password                              = (sensitive value)
+      [32m+[0m[0m performance_insights_enabled          = false
+      [32m+[0m[0m performance_insights_kms_key_id       = (known after apply)
+      [32m+[0m[0m performance_insights_retention_period = (known after apply)
+      [32m+[0m[0m port                                  = (known after apply)
+      [32m+[0m[0m publicly_accessible                   = false
+      [32m+[0m[0m replica_mode                          = (known after apply)
+      [32m+[0m[0m replicas                              = (known after apply)
+      [32m+[0m[0m resource_id                           = (known after apply)
+      [32m+[0m[0m skip_final_snapshot                   = true
+      [32m+[0m[0m snapshot_identifier                   = (known after apply)
+      [32m+[0m[0m status                                = (known after apply)
+      [32m+[0m[0m storage_throughput                    = (known after apply)
+      [32m+[0m[0m storage_type                          = "gp2"
+      [32m+[0m[0m tags                                  = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-targeting-db"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+          [32m+[0m[0m "Service"     = "targeting-service"
+        }
+      [32m+[0m[0m tags_all                              = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-targeting-db"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+          [32m+[0m[0m "Service"     = "targeting-service"
+        }
+      [32m+[0m[0m timezone                              = (known after apply)
+      [32m+[0m[0m username                              = "tm_user"
+      [32m+[0m[0m vpc_security_group_ids                = (known after apply)
+    }
+
+[1m  # module.databases.aws_db_subnet_group.main[0m will be created
+[0m  [32m+[0m[0m resource "aws_db_subnet_group" "main" {
+      [32m+[0m[0m arn                     = (known after apply)
+      [32m+[0m[0m description             = "Managed by Terraform"
+      [32m+[0m[0m id                      = (known after apply)
+      [32m+[0m[0m name                    = "togglemaster-rds-subnet-group"
+      [32m+[0m[0m name_prefix             = (known after apply)
+      [32m+[0m[0m subnet_ids              = (known after apply)
+      [32m+[0m[0m supported_network_types = (known after apply)
+      [32m+[0m[0m tags                    = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-rds-subnet-group"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m tags_all                = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-rds-subnet-group"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m vpc_id                  = (known after apply)
+    }
+
+[1m  # module.databases.aws_dynamodb_table.analytics[0m will be created
+[0m  [32m+[0m[0m resource "aws_dynamodb_table" "analytics" {
+      [32m+[0m[0m arn              = (known after apply)
+      [32m+[0m[0m billing_mode     = "PAY_PER_REQUEST"
+      [32m+[0m[0m hash_key         = "event_id"
+      [32m+[0m[0m id               = (known after apply)
+      [32m+[0m[0m name             = "ToggleMasterAnalytics"
+      [32m+[0m[0m read_capacity    = (known after apply)
+      [32m+[0m[0m stream_arn       = (known after apply)
+      [32m+[0m[0m stream_label     = (known after apply)
+      [32m+[0m[0m stream_view_type = (known after apply)
+      [32m+[0m[0m tags             = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "ToggleMasterAnalytics"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+          [32m+[0m[0m "Service"     = "analytics-service"
+        }
+      [32m+[0m[0m tags_all         = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "ToggleMasterAnalytics"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+          [32m+[0m[0m "Service"     = "analytics-service"
+        }
+      [32m+[0m[0m write_capacity   = (known after apply)
+
+      [32m+[0m[0m attribute {
+          [32m+[0m[0m name = "event_id"
+          [32m+[0m[0m type = "S"
+        }
+    }
+
+[1m  # module.databases.aws_elasticache_cluster.redis[0m will be created
+[0m  [32m+[0m[0m resource "aws_elasticache_cluster" "redis" {
+      [32m+[0m[0m apply_immediately          = (known after apply)
+      [32m+[0m[0m arn                        = (known after apply)
+      [32m+[0m[0m auto_minor_version_upgrade = "true"
+      [32m+[0m[0m availability_zone          = (known after apply)
+      [32m+[0m[0m az_mode                    = (known after apply)
+      [32m+[0m[0m cache_nodes                = (known after apply)
+      [32m+[0m[0m cluster_address            = (known after apply)
+      [32m+[0m[0m cluster_id                 = "togglemaster-redis"
+      [32m+[0m[0m configuration_endpoint     = (known after apply)
+      [32m+[0m[0m engine                     = "redis"
+      [32m+[0m[0m engine_version             = (known after apply)
+      [32m+[0m[0m engine_version_actual      = (known after apply)
+      [32m+[0m[0m id                         = (known after apply)
+      [32m+[0m[0m ip_discovery               = (known after apply)
+      [32m+[0m[0m maintenance_window         = (known after apply)
+      [32m+[0m[0m network_type               = (known after apply)
+      [32m+[0m[0m node_type                  = "cache.t3.micro"
+      [32m+[0m[0m num_cache_nodes            = 1
+      [32m+[0m[0m parameter_group_name       = (known after apply)
+      [32m+[0m[0m port                       = 6379
+      [32m+[0m[0m preferred_outpost_arn      = (known after apply)
+      [32m+[0m[0m replication_group_id       = (known after apply)
+      [32m+[0m[0m security_group_ids         = (known after apply)
+      [32m+[0m[0m snapshot_window            = (known after apply)
+      [32m+[0m[0m subnet_group_name          = "togglemaster-redis-subnet-group"
+      [32m+[0m[0m tags                       = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-redis"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+          [32m+[0m[0m "Service"     = "evaluation-service"
+        }
+      [32m+[0m[0m tags_all                   = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-redis"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+          [32m+[0m[0m "Service"     = "evaluation-service"
+        }
+      [32m+[0m[0m transit_encryption_enabled = (known after apply)
+    }
+
+[1m  # module.databases.aws_elasticache_subnet_group.main[0m will be created
+[0m  [32m+[0m[0m resource "aws_elasticache_subnet_group" "main" {
+      [32m+[0m[0m arn         = (known after apply)
+      [32m+[0m[0m description = "Managed by Terraform"
+      [32m+[0m[0m id          = (known after apply)
+      [32m+[0m[0m name        = "togglemaster-redis-subnet-group"
+      [32m+[0m[0m subnet_ids  = (known after apply)
+      [32m+[0m[0m tags        = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-redis-subnet-group"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m tags_all    = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-redis-subnet-group"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m vpc_id      = (known after apply)
+    }
+
+[1m  # module.ecr.aws_ecr_lifecycle_policy.services["analytics-service"][0m will be created
+[0m  [32m+[0m[0m resource "aws_ecr_lifecycle_policy" "services" {
+      [32m+[0m[0m id          = (known after apply)
+      [32m+[0m[0m policy      = jsonencode(
+            {
+              [32m+[0m[0m rules = [
+                  [32m+[0m[0m {
+                      [32m+[0m[0m action       = {
+                          [32m+[0m[0m type = "expire"
+                        }
+                      [32m+[0m[0m description  = "Manter ultimas 10 imagens"
+                      [32m+[0m[0m rulePriority = 1
+                      [32m+[0m[0m selection    = {
+                          [32m+[0m[0m countNumber = 10
+                          [32m+[0m[0m countType   = "imageCountMoreThan"
+                          [32m+[0m[0m tagStatus   = "any"
+                        }
+                    },
+                ]
+            }
+        )
+      [32m+[0m[0m registry_id = (known after apply)
+      [32m+[0m[0m repository  = "analytics-service"
+    }
+
+[1m  # module.ecr.aws_ecr_lifecycle_policy.services["auth-service"][0m will be created
+[0m  [32m+[0m[0m resource "aws_ecr_lifecycle_policy" "services" {
+      [32m+[0m[0m id          = (known after apply)
+      [32m+[0m[0m policy      = jsonencode(
+            {
+              [32m+[0m[0m rules = [
+                  [32m+[0m[0m {
+                      [32m+[0m[0m action       = {
+                          [32m+[0m[0m type = "expire"
+                        }
+                      [32m+[0m[0m description  = "Manter ultimas 10 imagens"
+                      [32m+[0m[0m rulePriority = 1
+                      [32m+[0m[0m selection    = {
+                          [32m+[0m[0m countNumber = 10
+                          [32m+[0m[0m countType   = "imageCountMoreThan"
+                          [32m+[0m[0m tagStatus   = "any"
+                        }
+                    },
+                ]
+            }
+        )
+      [32m+[0m[0m registry_id = (known after apply)
+      [32m+[0m[0m repository  = "auth-service"
+    }
+
+[1m  # module.ecr.aws_ecr_lifecycle_policy.services["evaluation-service"][0m will be created
+[0m  [32m+[0m[0m resource "aws_ecr_lifecycle_policy" "services" {
+      [32m+[0m[0m id          = (known after apply)
+      [32m+[0m[0m policy      = jsonencode(
+            {
+              [32m+[0m[0m rules = [
+                  [32m+[0m[0m {
+                      [32m+[0m[0m action       = {
+                          [32m+[0m[0m type = "expire"
+                        }
+                      [32m+[0m[0m description  = "Manter ultimas 10 imagens"
+                      [32m+[0m[0m rulePriority = 1
+                      [32m+[0m[0m selection    = {
+                          [32m+[0m[0m countNumber = 10
+                          [32m+[0m[0m countType   = "imageCountMoreThan"
+                          [32m+[0m[0m tagStatus   = "any"
+                        }
+                    },
+                ]
+            }
+        )
+      [32m+[0m[0m registry_id = (known after apply)
+      [32m+[0m[0m repository  = "evaluation-service"
+    }
+
+[1m  # module.ecr.aws_ecr_lifecycle_policy.services["flag-service"][0m will be created
+[0m  [32m+[0m[0m resource "aws_ecr_lifecycle_policy" "services" {
+      [32m+[0m[0m id          = (known after apply)
+      [32m+[0m[0m policy      = jsonencode(
+            {
+              [32m+[0m[0m rules = [
+                  [32m+[0m[0m {
+                      [32m+[0m[0m action       = {
+                          [32m+[0m[0m type = "expire"
+                        }
+                      [32m+[0m[0m description  = "Manter ultimas 10 imagens"
+                      [32m+[0m[0m rulePriority = 1
+                      [32m+[0m[0m selection    = {
+                          [32m+[0m[0m countNumber = 10
+                          [32m+[0m[0m countType   = "imageCountMoreThan"
+                          [32m+[0m[0m tagStatus   = "any"
+                        }
+                    },
+                ]
+            }
+        )
+      [32m+[0m[0m registry_id = (known after apply)
+      [32m+[0m[0m repository  = "flag-service"
+    }
+
+[1m  # module.ecr.aws_ecr_lifecycle_policy.services["targeting-service"][0m will be created
+[0m  [32m+[0m[0m resource "aws_ecr_lifecycle_policy" "services" {
+      [32m+[0m[0m id          = (known after apply)
+      [32m+[0m[0m policy      = jsonencode(
+            {
+              [32m+[0m[0m rules = [
+                  [32m+[0m[0m {
+                      [32m+[0m[0m action       = {
+                          [32m+[0m[0m type = "expire"
+                        }
+                      [32m+[0m[0m description  = "Manter ultimas 10 imagens"
+                      [32m+[0m[0m rulePriority = 1
+                      [32m+[0m[0m selection    = {
+                          [32m+[0m[0m countNumber = 10
+                          [32m+[0m[0m countType   = "imageCountMoreThan"
+                          [32m+[0m[0m tagStatus   = "any"
+                        }
+                    },
+                ]
+            }
+        )
+      [32m+[0m[0m registry_id = (known after apply)
+      [32m+[0m[0m repository  = "targeting-service"
+    }
+
+[1m  # module.ecr.aws_ecr_repository.services["analytics-service"][0m will be created
+[0m  [32m+[0m[0m resource "aws_ecr_repository" "services" {
+      [32m+[0m[0m arn                  = (known after apply)
+      [32m+[0m[0m force_delete         = true
+      [32m+[0m[0m id                   = (known after apply)
+      [32m+[0m[0m image_tag_mutability = "MUTABLE"
+      [32m+[0m[0m name                 = "analytics-service"
+      [32m+[0m[0m registry_id          = (known after apply)
+      [32m+[0m[0m repository_url       = (known after apply)
+      [32m+[0m[0m tags                 = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "analytics-service"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+          [32m+[0m[0m "Service"     = "analytics-service"
+        }
+      [32m+[0m[0m tags_all             = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "analytics-service"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+          [32m+[0m[0m "Service"     = "analytics-service"
+        }
+
+      [32m+[0m[0m image_scanning_configuration {
+          [32m+[0m[0m scan_on_push = true
+        }
+    }
+
+[1m  # module.ecr.aws_ecr_repository.services["auth-service"][0m will be created
+[0m  [32m+[0m[0m resource "aws_ecr_repository" "services" {
+      [32m+[0m[0m arn                  = (known after apply)
+      [32m+[0m[0m force_delete         = true
+      [32m+[0m[0m id                   = (known after apply)
+      [32m+[0m[0m image_tag_mutability = "MUTABLE"
+      [32m+[0m[0m name                 = "auth-service"
+      [32m+[0m[0m registry_id          = (known after apply)
+      [32m+[0m[0m repository_url       = (known after apply)
+      [32m+[0m[0m tags                 = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "auth-service"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+          [32m+[0m[0m "Service"     = "auth-service"
+        }
+      [32m+[0m[0m tags_all             = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "auth-service"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+          [32m+[0m[0m "Service"     = "auth-service"
+        }
+
+      [32m+[0m[0m image_scanning_configuration {
+          [32m+[0m[0m scan_on_push = true
+        }
+    }
+
+[1m  # module.ecr.aws_ecr_repository.services["evaluation-service"][0m will be created
+[0m  [32m+[0m[0m resource "aws_ecr_repository" "services" {
+      [32m+[0m[0m arn                  = (known after apply)
+      [32m+[0m[0m force_delete         = true
+      [32m+[0m[0m id                   = (known after apply)
+      [32m+[0m[0m image_tag_mutability = "MUTABLE"
+      [32m+[0m[0m name                 = "evaluation-service"
+      [32m+[0m[0m registry_id          = (known after apply)
+      [32m+[0m[0m repository_url       = (known after apply)
+      [32m+[0m[0m tags                 = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "evaluation-service"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+          [32m+[0m[0m "Service"     = "evaluation-service"
+        }
+      [32m+[0m[0m tags_all             = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "evaluation-service"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+          [32m+[0m[0m "Service"     = "evaluation-service"
+        }
+
+      [32m+[0m[0m image_scanning_configuration {
+          [32m+[0m[0m scan_on_push = true
+        }
+    }
+
+[1m  # module.ecr.aws_ecr_repository.services["flag-service"][0m will be created
+[0m  [32m+[0m[0m resource "aws_ecr_repository" "services" {
+      [32m+[0m[0m arn                  = (known after apply)
+      [32m+[0m[0m force_delete         = true
+      [32m+[0m[0m id                   = (known after apply)
+      [32m+[0m[0m image_tag_mutability = "MUTABLE"
+      [32m+[0m[0m name                 = "flag-service"
+      [32m+[0m[0m registry_id          = (known after apply)
+      [32m+[0m[0m repository_url       = (known after apply)
+      [32m+[0m[0m tags                 = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "flag-service"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+          [32m+[0m[0m "Service"     = "flag-service"
+        }
+      [32m+[0m[0m tags_all             = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "flag-service"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+          [32m+[0m[0m "Service"     = "flag-service"
+        }
+
+      [32m+[0m[0m image_scanning_configuration {
+          [32m+[0m[0m scan_on_push = true
+        }
+    }
+
+[1m  # module.ecr.aws_ecr_repository.services["targeting-service"][0m will be created
+[0m  [32m+[0m[0m resource "aws_ecr_repository" "services" {
+      [32m+[0m[0m arn                  = (known after apply)
+      [32m+[0m[0m force_delete         = true
+      [32m+[0m[0m id                   = (known after apply)
+      [32m+[0m[0m image_tag_mutability = "MUTABLE"
+      [32m+[0m[0m name                 = "targeting-service"
+      [32m+[0m[0m registry_id          = (known after apply)
+      [32m+[0m[0m repository_url       = (known after apply)
+      [32m+[0m[0m tags                 = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "targeting-service"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+          [32m+[0m[0m "Service"     = "targeting-service"
+        }
+      [32m+[0m[0m tags_all             = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "targeting-service"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+          [32m+[0m[0m "Service"     = "targeting-service"
+        }
+
+      [32m+[0m[0m image_scanning_configuration {
+          [32m+[0m[0m scan_on_push = true
+        }
+    }
+
+[1m  # module.eks.aws_eks_cluster.main[0m will be created
+[0m  [32m+[0m[0m resource "aws_eks_cluster" "main" {
+      [32m+[0m[0m arn                           = (known after apply)
+      [32m+[0m[0m bootstrap_self_managed_addons = true
+      [32m+[0m[0m certificate_authority         = (known after apply)
+      [32m+[0m[0m cluster_id                    = (known after apply)
+      [32m+[0m[0m created_at                    = (known after apply)
+      [32m+[0m[0m endpoint                      = (known after apply)
+      [32m+[0m[0m id                            = (known after apply)
+      [32m+[0m[0m identity                      = (known after apply)
+      [32m+[0m[0m name                          = "togglemaster-cluster"
+      [32m+[0m[0m platform_version              = (known after apply)
+      [32m+[0m[0m role_arn                      = "arn:aws:iam::774736517772:role/LabRole"
+      [32m+[0m[0m status                        = (known after apply)
+      [32m+[0m[0m tags                          = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-cluster"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m tags_all                      = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-cluster"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m version                       = "1.33"
+
+      [32m+[0m[0m vpc_config {
+          [32m+[0m[0m cluster_security_group_id = (known after apply)
+          [32m+[0m[0m endpoint_private_access   = false
+          [32m+[0m[0m endpoint_public_access    = true
+          [32m+[0m[0m public_access_cidrs       = (known after apply)
+          [32m+[0m[0m security_group_ids        = (known after apply)
+          [32m+[0m[0m subnet_ids                = (known after apply)
+          [32m+[0m[0m vpc_id                    = (known after apply)
+        }
+    }
+
+[1m  # module.eks.aws_eks_node_group.main[0m will be created
+[0m  [32m+[0m[0m resource "aws_eks_node_group" "main" {
+      [32m+[0m[0m ami_type               = "AL2023_x86_64_STANDARD"
+      [32m+[0m[0m arn                    = (known after apply)
+      [32m+[0m[0m capacity_type          = (known after apply)
+      [32m+[0m[0m cluster_name           = "togglemaster-cluster"
+      [32m+[0m[0m disk_size              = (known after apply)
+      [32m+[0m[0m id                     = (known after apply)
+      [32m+[0m[0m instance_types         = [
+          [32m+[0m[0m "t3.medium",
+        ]
+      [32m+[0m[0m node_group_name        = "togglemaster-ng"
+      [32m+[0m[0m node_group_name_prefix = (known after apply)
+      [32m+[0m[0m node_role_arn          = "arn:aws:iam::774736517772:role/LabRole"
+      [32m+[0m[0m release_version        = (known after apply)
+      [32m+[0m[0m resources              = (known after apply)
+      [32m+[0m[0m status                 = (known after apply)
+      [32m+[0m[0m subnet_ids             = (known after apply)
+      [32m+[0m[0m tags                   = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-ng"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m tags_all               = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-ng"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m version                = (known after apply)
+
+      [32m+[0m[0m scaling_config {
+          [32m+[0m[0m desired_size = 3
+          [32m+[0m[0m max_size     = 4
+          [32m+[0m[0m min_size     = 1
+        }
+    }
+
+[1m  # module.messaging.aws_sqs_queue.main[0m will be created
+[0m  [32m+[0m[0m resource "aws_sqs_queue" "main" {
+      [32m+[0m[0m arn                               = (known after apply)
+      [32m+[0m[0m content_based_deduplication       = false
+      [32m+[0m[0m deduplication_scope               = (known after apply)
+      [32m+[0m[0m delay_seconds                     = 0
+      [32m+[0m[0m fifo_queue                        = false
+      [32m+[0m[0m fifo_throughput_limit             = (known after apply)
+      [32m+[0m[0m id                                = (known after apply)
+      [32m+[0m[0m kms_data_key_reuse_period_seconds = (known after apply)
+      [32m+[0m[0m max_message_size                  = 262144
+      [32m+[0m[0m message_retention_seconds         = 86400
+      [32m+[0m[0m name                              = "togglemaster-queue"
+      [32m+[0m[0m name_prefix                       = (known after apply)
+      [32m+[0m[0m policy                            = (known after apply)
+      [32m+[0m[0m receive_wait_time_seconds         = 0
+      [32m+[0m[0m redrive_allow_policy              = (known after apply)
+      [32m+[0m[0m redrive_policy                    = (known after apply)
+      [32m+[0m[0m sqs_managed_sse_enabled           = (known after apply)
+      [32m+[0m[0m tags                              = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-queue"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m tags_all                          = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-queue"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m url                               = (known after apply)
+      [32m+[0m[0m visibility_timeout_seconds        = 30
+    }
+
+[1m  # module.networking.aws_eip.nat[0m will be created
+[0m  [32m+[0m[0m resource "aws_eip" "nat" {
+      [32m+[0m[0m allocation_id        = (known after apply)
+      [32m+[0m[0m arn                  = (known after apply)
+      [32m+[0m[0m association_id       = (known after apply)
+      [32m+[0m[0m carrier_ip           = (known after apply)
+      [32m+[0m[0m customer_owned_ip    = (known after apply)
+      [32m+[0m[0m domain               = "vpc"
+      [32m+[0m[0m id                   = (known after apply)
+      [32m+[0m[0m instance             = (known after apply)
+      [32m+[0m[0m ipam_pool_id         = (known after apply)
+      [32m+[0m[0m network_border_group = (known after apply)
+      [32m+[0m[0m network_interface    = (known after apply)
+      [32m+[0m[0m private_dns          = (known after apply)
+      [32m+[0m[0m private_ip           = (known after apply)
+      [32m+[0m[0m ptr_record           = (known after apply)
+      [32m+[0m[0m public_dns           = (known after apply)
+      [32m+[0m[0m public_ip            = (known after apply)
+      [32m+[0m[0m public_ipv4_pool     = (known after apply)
+      [32m+[0m[0m tags                 = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-nat-eip"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m tags_all             = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-nat-eip"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m vpc                  = (known after apply)
+    }
+
+[1m  # module.networking.aws_internet_gateway.main[0m will be created
+[0m  [32m+[0m[0m resource "aws_internet_gateway" "main" {
+      [32m+[0m[0m arn      = (known after apply)
+      [32m+[0m[0m id       = (known after apply)
+      [32m+[0m[0m owner_id = (known after apply)
+      [32m+[0m[0m tags     = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-igw"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m tags_all = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-igw"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m vpc_id   = (known after apply)
+    }
+
+[1m  # module.networking.aws_nat_gateway.main[0m will be created
+[0m  [32m+[0m[0m resource "aws_nat_gateway" "main" {
+      [32m+[0m[0m allocation_id                      = (known after apply)
+      [32m+[0m[0m association_id                     = (known after apply)
+      [32m+[0m[0m connectivity_type                  = "public"
+      [32m+[0m[0m id                                 = (known after apply)
+      [32m+[0m[0m network_interface_id               = (known after apply)
+      [32m+[0m[0m private_ip                         = (known after apply)
+      [32m+[0m[0m public_ip                          = (known after apply)
+      [32m+[0m[0m secondary_private_ip_address_count = (known after apply)
+      [32m+[0m[0m secondary_private_ip_addresses     = (known after apply)
+      [32m+[0m[0m subnet_id                          = (known after apply)
+      [32m+[0m[0m tags                               = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-ngw"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m tags_all                           = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-ngw"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+    }
+
+[1m  # module.networking.aws_route_table.private[0m will be created
+[0m  [32m+[0m[0m resource "aws_route_table" "private" {
+      [32m+[0m[0m arn              = (known after apply)
+      [32m+[0m[0m id               = (known after apply)
+      [32m+[0m[0m owner_id         = (known after apply)
+      [32m+[0m[0m propagating_vgws = (known after apply)
+      [32m+[0m[0m route            = [
+          [32m+[0m[0m {
+              [32m+[0m[0m carrier_gateway_id         = ""
+              [32m+[0m[0m cidr_block                 = "0.0.0.0/0"
+              [32m+[0m[0m core_network_arn           = ""
+              [32m+[0m[0m destination_prefix_list_id = ""
+              [32m+[0m[0m egress_only_gateway_id     = ""
+              [32m+[0m[0m gateway_id                 = ""
+              [32m+[0m[0m ipv6_cidr_block            = ""
+              [32m+[0m[0m local_gateway_id           = ""
+              [32m+[0m[0m nat_gateway_id             = (known after apply)
+              [32m+[0m[0m network_interface_id       = ""
+              [32m+[0m[0m transit_gateway_id         = ""
+              [32m+[0m[0m vpc_endpoint_id            = ""
+              [32m+[0m[0m vpc_peering_connection_id  = ""
+            },
+        ]
+      [32m+[0m[0m tags             = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-private-rtb"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m tags_all         = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-private-rtb"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m vpc_id           = (known after apply)
+    }
+
+[1m  # module.networking.aws_route_table.public[0m will be created
+[0m  [32m+[0m[0m resource "aws_route_table" "public" {
+      [32m+[0m[0m arn              = (known after apply)
+      [32m+[0m[0m id               = (known after apply)
+      [32m+[0m[0m owner_id         = (known after apply)
+      [32m+[0m[0m propagating_vgws = (known after apply)
+      [32m+[0m[0m route            = [
+          [32m+[0m[0m {
+              [32m+[0m[0m carrier_gateway_id         = ""
+              [32m+[0m[0m cidr_block                 = "0.0.0.0/0"
+              [32m+[0m[0m core_network_arn           = ""
+              [32m+[0m[0m destination_prefix_list_id = ""
+              [32m+[0m[0m egress_only_gateway_id     = ""
+              [32m+[0m[0m gateway_id                 = (known after apply)
+              [32m+[0m[0m ipv6_cidr_block            = ""
+              [32m+[0m[0m local_gateway_id           = ""
+              [32m+[0m[0m nat_gateway_id             = ""
+              [32m+[0m[0m network_interface_id       = ""
+              [32m+[0m[0m transit_gateway_id         = ""
+              [32m+[0m[0m vpc_endpoint_id            = ""
+              [32m+[0m[0m vpc_peering_connection_id  = ""
+            },
+        ]
+      [32m+[0m[0m tags             = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-public-rtb"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m tags_all         = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-public-rtb"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m vpc_id           = (known after apply)
+    }
+
+[1m  # module.networking.aws_route_table_association.private[0][0m will be created
+[0m  [32m+[0m[0m resource "aws_route_table_association" "private" {
+      [32m+[0m[0m id             = (known after apply)
+      [32m+[0m[0m route_table_id = (known after apply)
+      [32m+[0m[0m subnet_id      = (known after apply)
+    }
+
+[1m  # module.networking.aws_route_table_association.private[1][0m will be created
+[0m  [32m+[0m[0m resource "aws_route_table_association" "private" {
+      [32m+[0m[0m id             = (known after apply)
+      [32m+[0m[0m route_table_id = (known after apply)
+      [32m+[0m[0m subnet_id      = (known after apply)
+    }
+
+[1m  # module.networking.aws_route_table_association.public[0][0m will be created
+[0m  [32m+[0m[0m resource "aws_route_table_association" "public" {
+      [32m+[0m[0m id             = (known after apply)
+      [32m+[0m[0m route_table_id = (known after apply)
+      [32m+[0m[0m subnet_id      = (known after apply)
+    }
+
+[1m  # module.networking.aws_route_table_association.public[1][0m will be created
+[0m  [32m+[0m[0m resource "aws_route_table_association" "public" {
+      [32m+[0m[0m id             = (known after apply)
+      [32m+[0m[0m route_table_id = (known after apply)
+      [32m+[0m[0m subnet_id      = (known after apply)
+    }
+
+[1m  # module.networking.aws_security_group.eks_nodes[0m will be created
+[0m  [32m+[0m[0m resource "aws_security_group" "eks_nodes" {
+      [32m+[0m[0m arn                    = (known after apply)
+      [32m+[0m[0m description            = "Security group para EKS nodes"
+      [32m+[0m[0m egress                 = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m description      = "All outbound"
+              [32m+[0m[0m from_port        = 0
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "-1"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 0
+            },
+        ]
+      [32m+[0m[0m id                     = (known after apply)
+      [32m+[0m[0m ingress                = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m description      = "HTTP"
+              [32m+[0m[0m from_port        = 80
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 80
+            },
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m description      = "HTTPS"
+              [32m+[0m[0m from_port        = 443
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 443
+            },
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = []
+              [32m+[0m[0m description      = "Inter-node communication"
+              [32m+[0m[0m from_port        = 1025
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = true
+              [32m+[0m[0m to_port          = 65535
+            },
+        ]
+      [32m+[0m[0m name                   = (known after apply)
+      [32m+[0m[0m name_prefix            = "togglemaster-eks-nodes-"
+      [32m+[0m[0m owner_id               = (known after apply)
+      [32m+[0m[0m revoke_rules_on_delete = false
+      [32m+[0m[0m tags                   = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-eks-nodes-sg"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m tags_all               = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-eks-nodes-sg"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m vpc_id                 = (known after apply)
+    }
+
+[1m  # module.networking.aws_security_group.rds[0m will be created
+[0m  [32m+[0m[0m resource "aws_security_group" "rds" {
+      [32m+[0m[0m arn                    = (known after apply)
+      [32m+[0m[0m description            = "Security group para RDS PostgreSQL"
+      [32m+[0m[0m egress                 = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m description      = "All outbound"
+              [32m+[0m[0m from_port        = 0
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "-1"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 0
+            },
+        ]
+      [32m+[0m[0m id                     = (known after apply)
+      [32m+[0m[0m ingress                = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "10.0.11.0/24",
+                  [32m+[0m[0m "10.0.22.0/24",
+                ]
+              [32m+[0m[0m description      = "PostgreSQL from private subnets (EKS managed nodes)"
+              [32m+[0m[0m from_port        = 5432
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 5432
+            },
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = []
+              [32m+[0m[0m description      = "PostgreSQL from EKS nodes (custom SG)"
+              [32m+[0m[0m from_port        = 5432
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = (known after apply)
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 5432
+            },
+        ]
+      [32m+[0m[0m name                   = (known after apply)
+      [32m+[0m[0m name_prefix            = "togglemaster-rds-"
+      [32m+[0m[0m owner_id               = (known after apply)
+      [32m+[0m[0m revoke_rules_on_delete = false
+      [32m+[0m[0m tags                   = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-rds-sg"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m tags_all               = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-rds-sg"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m vpc_id                 = (known after apply)
+    }
+
+[1m  # module.networking.aws_security_group.redis[0m will be created
+[0m  [32m+[0m[0m resource "aws_security_group" "redis" {
+      [32m+[0m[0m arn                    = (known after apply)
+      [32m+[0m[0m description            = "Security group para ElastiCache Redis"
+      [32m+[0m[0m egress                 = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "0.0.0.0/0",
+                ]
+              [32m+[0m[0m description      = "All outbound"
+              [32m+[0m[0m from_port        = 0
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "-1"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 0
+            },
+        ]
+      [32m+[0m[0m id                     = (known after apply)
+      [32m+[0m[0m ingress                = [
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = [
+                  [32m+[0m[0m "10.0.11.0/24",
+                  [32m+[0m[0m "10.0.22.0/24",
+                ]
+              [32m+[0m[0m description      = "Redis from private subnets (EKS managed nodes)"
+              [32m+[0m[0m from_port        = 6379
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = []
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 6379
+            },
+          [32m+[0m[0m {
+              [32m+[0m[0m cidr_blocks      = []
+              [32m+[0m[0m description      = "Redis from EKS nodes (custom SG)"
+              [32m+[0m[0m from_port        = 6379
+              [32m+[0m[0m ipv6_cidr_blocks = []
+              [32m+[0m[0m prefix_list_ids  = []
+              [32m+[0m[0m protocol         = "tcp"
+              [32m+[0m[0m security_groups  = (known after apply)
+              [32m+[0m[0m self             = false
+              [32m+[0m[0m to_port          = 6379
+            },
+        ]
+      [32m+[0m[0m name                   = (known after apply)
+      [32m+[0m[0m name_prefix            = "togglemaster-redis-"
+      [32m+[0m[0m owner_id               = (known after apply)
+      [32m+[0m[0m revoke_rules_on_delete = false
+      [32m+[0m[0m tags                   = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-redis-sg"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m tags_all               = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-redis-sg"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m vpc_id                 = (known after apply)
+    }
+
+[1m  # module.networking.aws_subnet.private[0][0m will be created
+[0m  [32m+[0m[0m resource "aws_subnet" "private" {
+      [32m+[0m[0m arn                                            = (known after apply)
+      [32m+[0m[0m assign_ipv6_address_on_creation                = false
+      [32m+[0m[0m availability_zone                              = "us-east-1a"
+      [32m+[0m[0m availability_zone_id                           = (known after apply)
+      [32m+[0m[0m cidr_block                                     = "10.0.11.0/24"
+      [32m+[0m[0m enable_dns64                                   = false
+      [32m+[0m[0m enable_resource_name_dns_a_record_on_launch    = false
+      [32m+[0m[0m enable_resource_name_dns_aaaa_record_on_launch = false
+      [32m+[0m[0m id                                             = (known after apply)
+      [32m+[0m[0m ipv6_cidr_block_association_id                 = (known after apply)
+      [32m+[0m[0m ipv6_native                                    = false
+      [32m+[0m[0m map_public_ip_on_launch                        = false
+      [32m+[0m[0m owner_id                                       = (known after apply)
+      [32m+[0m[0m private_dns_hostname_type_on_launch            = (known after apply)
+      [32m+[0m[0m tags                                           = {
+          [32m+[0m[0m "Environment"                                = "production"
+          [32m+[0m[0m "ManagedBy"                                  = "terraform"
+          [32m+[0m[0m "Name"                                       = "togglemaster-subnet-private-us-east-1a"
+          [32m+[0m[0m "Phase"                                      = "3"
+          [32m+[0m[0m "Project"                                    = "ToggleMaster"
+          [32m+[0m[0m "kubernetes.io/cluster/togglemaster-cluster" = "shared"
+          [32m+[0m[0m "kubernetes.io/role/internal-elb"            = "1"
+        }
+      [32m+[0m[0m tags_all                                       = {
+          [32m+[0m[0m "Environment"                                = "production"
+          [32m+[0m[0m "ManagedBy"                                  = "terraform"
+          [32m+[0m[0m "Name"                                       = "togglemaster-subnet-private-us-east-1a"
+          [32m+[0m[0m "Phase"                                      = "3"
+          [32m+[0m[0m "Project"                                    = "ToggleMaster"
+          [32m+[0m[0m "kubernetes.io/cluster/togglemaster-cluster" = "shared"
+          [32m+[0m[0m "kubernetes.io/role/internal-elb"            = "1"
+        }
+      [32m+[0m[0m vpc_id                                         = (known after apply)
+    }
+
+[1m  # module.networking.aws_subnet.private[1][0m will be created
+[0m  [32m+[0m[0m resource "aws_subnet" "private" {
+      [32m+[0m[0m arn                                            = (known after apply)
+      [32m+[0m[0m assign_ipv6_address_on_creation                = false
+      [32m+[0m[0m availability_zone                              = "us-east-1b"
+      [32m+[0m[0m availability_zone_id                           = (known after apply)
+      [32m+[0m[0m cidr_block                                     = "10.0.22.0/24"
+      [32m+[0m[0m enable_dns64                                   = false
+      [32m+[0m[0m enable_resource_name_dns_a_record_on_launch    = false
+      [32m+[0m[0m enable_resource_name_dns_aaaa_record_on_launch = false
+      [32m+[0m[0m id                                             = (known after apply)
+      [32m+[0m[0m ipv6_cidr_block_association_id                 = (known after apply)
+      [32m+[0m[0m ipv6_native                                    = false
+      [32m+[0m[0m map_public_ip_on_launch                        = false
+      [32m+[0m[0m owner_id                                       = (known after apply)
+      [32m+[0m[0m private_dns_hostname_type_on_launch            = (known after apply)
+      [32m+[0m[0m tags                                           = {
+          [32m+[0m[0m "Environment"                                = "production"
+          [32m+[0m[0m "ManagedBy"                                  = "terraform"
+          [32m+[0m[0m "Name"                                       = "togglemaster-subnet-private-us-east-1b"
+          [32m+[0m[0m "Phase"                                      = "3"
+          [32m+[0m[0m "Project"                                    = "ToggleMaster"
+          [32m+[0m[0m "kubernetes.io/cluster/togglemaster-cluster" = "shared"
+          [32m+[0m[0m "kubernetes.io/role/internal-elb"            = "1"
+        }
+      [32m+[0m[0m tags_all                                       = {
+          [32m+[0m[0m "Environment"                                = "production"
+          [32m+[0m[0m "ManagedBy"                                  = "terraform"
+          [32m+[0m[0m "Name"                                       = "togglemaster-subnet-private-us-east-1b"
+          [32m+[0m[0m "Phase"                                      = "3"
+          [32m+[0m[0m "Project"                                    = "ToggleMaster"
+          [32m+[0m[0m "kubernetes.io/cluster/togglemaster-cluster" = "shared"
+          [32m+[0m[0m "kubernetes.io/role/internal-elb"            = "1"
+        }
+      [32m+[0m[0m vpc_id                                         = (known after apply)
+    }
+
+[1m  # module.networking.aws_subnet.public[0][0m will be created
+[0m  [32m+[0m[0m resource "aws_subnet" "public" {
+      [32m+[0m[0m arn                                            = (known after apply)
+      [32m+[0m[0m assign_ipv6_address_on_creation                = false
+      [32m+[0m[0m availability_zone                              = "us-east-1a"
+      [32m+[0m[0m availability_zone_id                           = (known after apply)
+      [32m+[0m[0m cidr_block                                     = "10.0.1.0/24"
+      [32m+[0m[0m enable_dns64                                   = false
+      [32m+[0m[0m enable_resource_name_dns_a_record_on_launch    = false
+      [32m+[0m[0m enable_resource_name_dns_aaaa_record_on_launch = false
+      [32m+[0m[0m id                                             = (known after apply)
+      [32m+[0m[0m ipv6_cidr_block_association_id                 = (known after apply)
+      [32m+[0m[0m ipv6_native                                    = false
+      [32m+[0m[0m map_public_ip_on_launch                        = true
+      [32m+[0m[0m owner_id                                       = (known after apply)
+      [32m+[0m[0m private_dns_hostname_type_on_launch            = (known after apply)
+      [32m+[0m[0m tags                                           = {
+          [32m+[0m[0m "Environment"                                = "production"
+          [32m+[0m[0m "ManagedBy"                                  = "terraform"
+          [32m+[0m[0m "Name"                                       = "togglemaster-subnet-public-us-east-1a"
+          [32m+[0m[0m "Phase"                                      = "3"
+          [32m+[0m[0m "Project"                                    = "ToggleMaster"
+          [32m+[0m[0m "kubernetes.io/cluster/togglemaster-cluster" = "shared"
+          [32m+[0m[0m "kubernetes.io/role/elb"                     = "1"
+        }
+      [32m+[0m[0m tags_all                                       = {
+          [32m+[0m[0m "Environment"                                = "production"
+          [32m+[0m[0m "ManagedBy"                                  = "terraform"
+          [32m+[0m[0m "Name"                                       = "togglemaster-subnet-public-us-east-1a"
+          [32m+[0m[0m "Phase"                                      = "3"
+          [32m+[0m[0m "Project"                                    = "ToggleMaster"
+          [32m+[0m[0m "kubernetes.io/cluster/togglemaster-cluster" = "shared"
+          [32m+[0m[0m "kubernetes.io/role/elb"                     = "1"
+        }
+      [32m+[0m[0m vpc_id                                         = (known after apply)
+    }
+
+[1m  # module.networking.aws_subnet.public[1][0m will be created
+[0m  [32m+[0m[0m resource "aws_subnet" "public" {
+      [32m+[0m[0m arn                                            = (known after apply)
+      [32m+[0m[0m assign_ipv6_address_on_creation                = false
+      [32m+[0m[0m availability_zone                              = "us-east-1b"
+      [32m+[0m[0m availability_zone_id                           = (known after apply)
+      [32m+[0m[0m cidr_block                                     = "10.0.2.0/24"
+      [32m+[0m[0m enable_dns64                                   = false
+      [32m+[0m[0m enable_resource_name_dns_a_record_on_launch    = false
+      [32m+[0m[0m enable_resource_name_dns_aaaa_record_on_launch = false
+      [32m+[0m[0m id                                             = (known after apply)
+      [32m+[0m[0m ipv6_cidr_block_association_id                 = (known after apply)
+      [32m+[0m[0m ipv6_native                                    = false
+      [32m+[0m[0m map_public_ip_on_launch                        = true
+      [32m+[0m[0m owner_id                                       = (known after apply)
+      [32m+[0m[0m private_dns_hostname_type_on_launch            = (known after apply)
+      [32m+[0m[0m tags                                           = {
+          [32m+[0m[0m "Environment"                                = "production"
+          [32m+[0m[0m "ManagedBy"                                  = "terraform"
+          [32m+[0m[0m "Name"                                       = "togglemaster-subnet-public-us-east-1b"
+          [32m+[0m[0m "Phase"                                      = "3"
+          [32m+[0m[0m "Project"                                    = "ToggleMaster"
+          [32m+[0m[0m "kubernetes.io/cluster/togglemaster-cluster" = "shared"
+          [32m+[0m[0m "kubernetes.io/role/elb"                     = "1"
+        }
+      [32m+[0m[0m tags_all                                       = {
+          [32m+[0m[0m "Environment"                                = "production"
+          [32m+[0m[0m "ManagedBy"                                  = "terraform"
+          [32m+[0m[0m "Name"                                       = "togglemaster-subnet-public-us-east-1b"
+          [32m+[0m[0m "Phase"                                      = "3"
+          [32m+[0m[0m "Project"                                    = "ToggleMaster"
+          [32m+[0m[0m "kubernetes.io/cluster/togglemaster-cluster" = "shared"
+          [32m+[0m[0m "kubernetes.io/role/elb"                     = "1"
+        }
+      [32m+[0m[0m vpc_id                                         = (known after apply)
+    }
+
+[1m  # module.networking.aws_vpc.main[0m will be created
+[0m  [32m+[0m[0m resource "aws_vpc" "main" {
+      [32m+[0m[0m arn                                  = (known after apply)
+      [32m+[0m[0m cidr_block                           = "10.0.0.0/16"
+      [32m+[0m[0m default_network_acl_id               = (known after apply)
+      [32m+[0m[0m default_route_table_id               = (known after apply)
+      [32m+[0m[0m default_security_group_id            = (known after apply)
+      [32m+[0m[0m dhcp_options_id                      = (known after apply)
+      [32m+[0m[0m enable_dns_hostnames                 = true
+      [32m+[0m[0m enable_dns_support                   = true
+      [32m+[0m[0m enable_network_address_usage_metrics = (known after apply)
+      [32m+[0m[0m id                                   = (known after apply)
+      [32m+[0m[0m instance_tenancy                     = "default"
+      [32m+[0m[0m ipv6_association_id                  = (known after apply)
+      [32m+[0m[0m ipv6_cidr_block                      = (known after apply)
+      [32m+[0m[0m ipv6_cidr_block_network_border_group = (known after apply)
+      [32m+[0m[0m main_route_table_id                  = (known after apply)
+      [32m+[0m[0m owner_id                             = (known after apply)
+      [32m+[0m[0m tags                                 = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-vpc"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+      [32m+[0m[0m tags_all                             = {
+          [32m+[0m[0m "Environment" = "production"
+          [32m+[0m[0m "ManagedBy"   = "terraform"
+          [32m+[0m[0m "Name"        = "togglemaster-vpc"
+          [32m+[0m[0m "Phase"       = "3"
+          [32m+[0m[0m "Project"     = "ToggleMaster"
+        }
+    }
+
+[1mPlan:[0m 37 to add, 0 to change, 0 to destroy.
+[0m
+Changes to Outputs:
+  [32m+[0m[0m auth_db_endpoint      = (known after apply)
+  [32m+[0m[0m dynamodb_table_name   = "ToggleMasterAnalytics"
+  [32m+[0m[0m ecr_repository_urls   = {
+      [32m+[0m[0m analytics-service  = (known after apply)
+      [32m+[0m[0m auth-service       = (known after apply)
+      [32m+[0m[0m evaluation-service = (known after apply)
+      [32m+[0m[0m flag-service       = (known after apply)
+      [32m+[0m[0m targeting-service  = (known after apply)
+    }
+  [32m+[0m[0m eks_cluster_endpoint  = (known after apply)
+  [32m+[0m[0m eks_cluster_name      = "togglemaster-cluster"
+  [32m+[0m[0m flag_db_endpoint      = (known after apply)
+  [32m+[0m[0m redis_endpoint        = (known after apply)
+  [32m+[0m[0m sqs_queue_url         = (known after apply)
+  [32m+[0m[0m targeting_db_endpoint = (known after apply)
+  [32m+[0m[0m vpc_id                = (known after apply)
+[0m[1mmodule.ecr.aws_ecr_repository.services["flag-service"]: Creating...[0m[0m
+[0m[1mmodule.ecr.aws_ecr_repository.services["evaluation-service"]: Creating...[0m[0m
+[0m[1mmodule.messaging.aws_sqs_queue.main: Creating...[0m[0m
+[0m[1mmodule.ecr.aws_ecr_repository.services["analytics-service"]: Creating...[0m[0m
+[0m[1mmodule.ecr.aws_ecr_repository.services["auth-service"]: Creating...[0m[0m
+[0m[1mmodule.networking.aws_vpc.main: Creating...[0m[0m
+[0m[1mmodule.networking.aws_eip.nat: Creating...[0m[0m
+[0m[1mmodule.ecr.aws_ecr_repository.services["targeting-service"]: Creating...[0m[0m
+[0m[1mmodule.databases.aws_dynamodb_table.analytics: Creating...[0m[0m
+[0m[1mmodule.ecr.aws_ecr_repository.services["auth-service"]: Creation complete after 2s [id=auth-service][0m
+[0m[1mmodule.ecr.aws_ecr_repository.services["targeting-service"]: Creation complete after 2s [id=targeting-service][0m
+[0m[1mmodule.ecr.aws_ecr_repository.services["flag-service"]: Creation complete after 2s [id=flag-service][0m
+[0m[1mmodule.ecr.aws_ecr_repository.services["evaluation-service"]: Creation complete after 2s [id=evaluation-service][0m
+[0m[1mmodule.ecr.aws_ecr_repository.services["analytics-service"]: Creation complete after 2s [id=analytics-service][0m
+[0m[1mmodule.ecr.aws_ecr_lifecycle_policy.services["analytics-service"]: Creating...[0m[0m
+[0m[1mmodule.ecr.aws_ecr_lifecycle_policy.services["flag-service"]: Creating...[0m[0m
+[0m[1mmodule.ecr.aws_ecr_lifecycle_policy.services["evaluation-service"]: Creating...[0m[0m
+[0m[1mmodule.ecr.aws_ecr_lifecycle_policy.services["auth-service"]: Creating...[0m[0m
+[0m[1mmodule.ecr.aws_ecr_lifecycle_policy.services["targeting-service"]: Creating...[0m[0m
+[0m[1mmodule.ecr.aws_ecr_lifecycle_policy.services["targeting-service"]: Creation complete after 1s [id=targeting-service][0m
+[0m[1mmodule.ecr.aws_ecr_lifecycle_policy.services["auth-service"]: Creation complete after 1s [id=auth-service][0m
+[0m[1mmodule.ecr.aws_ecr_lifecycle_policy.services["analytics-service"]: Creation complete after 1s [id=analytics-service][0m
+[0m[1mmodule.ecr.aws_ecr_lifecycle_policy.services["evaluation-service"]: Creation complete after 1s [id=evaluation-service][0m
+[0m[1mmodule.ecr.aws_ecr_lifecycle_policy.services["flag-service"]: Creation complete after 1s [id=flag-service][0m
+[0m[1mmodule.networking.aws_eip.nat: Creation complete after 4s [id=eipalloc-04441d93ca46313ba][0m
+[0m[1mmodule.messaging.aws_sqs_queue.main: Still creating... [10s elapsed][0m[0m
+[0m[1mmodule.networking.aws_vpc.main: Still creating... [10s elapsed][0m[0m
+[0m[1mmodule.databases.aws_dynamodb_table.analytics: Still creating... [10s elapsed][0m[0m
+[0m[1mmodule.networking.aws_vpc.main: Creation complete after 14s [id=vpc-0bbf99b003958efd8][0m
+[0m[1mmodule.networking.aws_internet_gateway.main: Creating...[0m[0m
+[0m[1mmodule.networking.aws_subnet.private[1]: Creating...[0m[0m
+[0m[1mmodule.networking.aws_subnet.public[1]: Creating...[0m[0m
+[0m[1mmodule.networking.aws_subnet.public[0]: Creating...[0m[0m
+[0m[1mmodule.networking.aws_subnet.private[0]: Creating...[0m[0m
+[0m[1mmodule.networking.aws_security_group.eks_nodes: Creating...[0m[0m
+[0m[1mmodule.networking.aws_subnet.private[1]: Creation complete after 2s [id=subnet-0ddc27b3c26405159][0m
+[0m[1mmodule.networking.aws_internet_gateway.main: Creation complete after 2s [id=igw-08c5ec578dd4ed213][0m
+[0m[1mmodule.networking.aws_route_table.public: Creating...[0m[0m
+[0m[1mmodule.databases.aws_dynamodb_table.analytics: Creation complete after 16s [id=ToggleMasterAnalytics][0m
+[0m[1mmodule.networking.aws_subnet.private[0]: Creation complete after 2s [id=subnet-062fa3367bf940526][0m
+[0m[1mmodule.databases.aws_elasticache_subnet_group.main: Creating...[0m[0m
+[0m[1mmodule.databases.aws_db_subnet_group.main: Creating...[0m[0m
+[0m[1mmodule.networking.aws_route_table.public: Creation complete after 2s [id=rtb-0eae08e032854c6a0][0m
+[0m[1mmodule.databases.aws_elasticache_subnet_group.main: Creation complete after 3s [id=togglemaster-redis-subnet-group][0m
+[0m[1mmodule.databases.aws_db_subnet_group.main: Creation complete after 3s [id=togglemaster-rds-subnet-group][0m
+[0m[1mmodule.networking.aws_security_group.eks_nodes: Creation complete after 5s [id=sg-0f846c41d2ced174f][0m
+[0m[1mmodule.networking.aws_security_group.rds: Creating...[0m[0m
+[0m[1mmodule.networking.aws_security_group.redis: Creating...[0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Creating...[0m[0m
+[0m[1mmodule.messaging.aws_sqs_queue.main: Still creating... [20s elapsed][0m[0m
+[0m[1mmodule.networking.aws_security_group.rds: Creation complete after 4s [id=sg-052e3bcc57fe1a50b][0m
+[0m[1mmodule.networking.aws_subnet.public[1]: Still creating... [10s elapsed][0m[0m
+[0m[1mmodule.networking.aws_subnet.public[0]: Still creating... [10s elapsed][0m[0m
+[0m[1mmodule.networking.aws_security_group.redis: Creation complete after 6s [id=sg-08a585f112c42677e][0m
+[0m[1mmodule.databases.aws_elasticache_cluster.redis: Creating...[0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Creating...[0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Creating...[0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Creating...[0m[0m
+[0m[1mmodule.networking.aws_subnet.public[1]: Creation complete after 13s [id=subnet-066760d4cfbd40e9f][0m
+[0m[1mmodule.networking.aws_subnet.public[0]: Creation complete after 13s [id=subnet-0995695cc4e8c5165][0m
+[0m[1mmodule.networking.aws_route_table_association.public[0]: Creating...[0m[0m
+[0m[1mmodule.networking.aws_route_table_association.public[1]: Creating...[0m[0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Creating...[0m[0m
+[0m[1mmodule.networking.aws_route_table_association.public[0]: Creation complete after 0s [id=rtbassoc-0b65fa957ecefac10][0m
+[0m[1mmodule.networking.aws_route_table_association.public[1]: Creation complete after 1s [id=rtbassoc-078b7a380763b02a2][0m
+[0m[1mmodule.messaging.aws_sqs_queue.main: Creation complete after 28s [id=https://sqs.us-east-1.amazonaws.com/774736517772/togglemaster-queue][0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [10s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [10s elapsed][0m[0m
+[0m[1mmodule.databases.aws_elasticache_cluster.redis: Still creating... [10s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [10s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [10s elapsed][0m[0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Still creating... [10s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [20s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [20s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [20s elapsed][0m[0m
+[0m[1mmodule.databases.aws_elasticache_cluster.redis: Still creating... [20s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [20s elapsed][0m[0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Still creating... [20s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [30s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [30s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [30s elapsed][0m[0m
+[0m[1mmodule.databases.aws_elasticache_cluster.redis: Still creating... [30s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [30s elapsed][0m[0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Still creating... [30s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [40s elapsed][0m[0m
+[0m[1mmodule.databases.aws_elasticache_cluster.redis: Still creating... [40s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [40s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [40s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [40s elapsed][0m[0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Still creating... [40s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [50s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [50s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [50s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [50s elapsed][0m[0m
+[0m[1mmodule.databases.aws_elasticache_cluster.redis: Still creating... [50s elapsed][0m[0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Still creating... [50s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [1m0s elapsed][0m[0m
+[0m[1mmodule.databases.aws_elasticache_cluster.redis: Still creating... [1m0s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [1m0s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [1m0s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [1m0s elapsed][0m[0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Still creating... [1m0s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [1m10s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [1m10s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [1m10s elapsed][0m[0m
+[0m[1mmodule.databases.aws_elasticache_cluster.redis: Still creating... [1m10s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [1m10s elapsed][0m[0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Still creating... [1m10s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [1m20s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [1m20s elapsed][0m[0m
+[0m[1mmodule.databases.aws_elasticache_cluster.redis: Still creating... [1m20s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [1m20s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [1m20s elapsed][0m[0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Still creating... [1m20s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [1m30s elapsed][0m[0m
+[0m[1mmodule.databases.aws_elasticache_cluster.redis: Still creating... [1m30s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [1m30s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [1m30s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [1m30s elapsed][0m[0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Still creating... [1m30s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [1m40s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [1m40s elapsed][0m[0m
+[0m[1mmodule.databases.aws_elasticache_cluster.redis: Still creating... [1m40s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [1m40s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [1m40s elapsed][0m[0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Still creating... [1m40s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [1m50s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [1m50s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [1m50s elapsed][0m[0m
+[0m[1mmodule.databases.aws_elasticache_cluster.redis: Still creating... [1m50s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [1m50s elapsed][0m[0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Still creating... [1m50s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [2m0s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [2m0s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [2m0s elapsed][0m[0m
+[0m[1mmodule.databases.aws_elasticache_cluster.redis: Still creating... [2m0s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [2m0s elapsed][0m[0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Still creating... [2m0s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [2m10s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [2m10s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [2m10s elapsed][0m[0m
+[0m[1mmodule.databases.aws_elasticache_cluster.redis: Still creating... [2m10s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [2m10s elapsed][0m[0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Still creating... [2m10s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [2m20s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [2m20s elapsed][0m[0m
+[0m[1mmodule.databases.aws_elasticache_cluster.redis: Still creating... [2m20s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [2m20s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [2m20s elapsed][0m[0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Still creating... [2m20s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [2m30s elapsed][0m[0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Creation complete after 2m28s [id=nat-0deba296849a3890b][0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [2m30s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [2m30s elapsed][0m[0m
+[0m[1mmodule.databases.aws_elasticache_cluster.redis: Still creating... [2m30s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [2m30s elapsed][0m[0m
+[0m[1mmodule.networking.aws_route_table.private: Creating...[0m[0m
+[0m[1mmodule.networking.aws_route_table.private: Creation complete after 2s [id=rtb-083a3d9ee2860aaa3][0m
+[0m[1mmodule.networking.aws_route_table_association.private[1]: Creating...[0m[0m
+[0m[1mmodule.networking.aws_route_table_association.private[0]: Creating...[0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [2m40s elapsed][0m[0m
+[0m[1mmodule.networking.aws_route_table_association.private[0]: Creation complete after 1s [id=rtbassoc-0a4a2642f7cf54850][0m
+[0m[1mmodule.networking.aws_route_table_association.private[1]: Creation complete after 2s [id=rtbassoc-045caf58bcaa50333][0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [2m40s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [2m40s elapsed][0m[0m
+[0m[1mmodule.databases.aws_elasticache_cluster.redis: Still creating... [2m40s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [2m40s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [2m50s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [2m50s elapsed][0m[0m
+[0m[1mmodule.databases.aws_elasticache_cluster.redis: Still creating... [2m50s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [2m50s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [2m50s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [3m0s elapsed][0m[0m
+[0m[1mmodule.databases.aws_elasticache_cluster.redis: Still creating... [3m0s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [3m0s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [3m0s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [3m0s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [3m10s elapsed][0m[0m
+[0m[1mmodule.databases.aws_elasticache_cluster.redis: Creation complete after 3m5s [id=togglemaster-redis][0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [3m10s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [3m10s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [3m10s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [3m20s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [3m20s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [3m20s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [3m20s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [3m30s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [3m30s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [3m30s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [3m30s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [3m40s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [3m40s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [3m40s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [3m40s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [3m50s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [3m50s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [3m50s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [3m50s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [4m0s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [4m0s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [4m0s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [4m0s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [4m10s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [4m10s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [4m10s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [4m10s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [4m20s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [4m20s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [4m20s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [4m20s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [4m30s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [4m30s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [4m30s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [4m30s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [4m40s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Still creating... [4m40s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [4m40s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [4m40s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [4m50s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Creation complete after 4m50s [id=db-PF6J2OBQG44TRD6WYVRHQWMMDE][0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [4m50s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [4m50s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [5m0s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Still creating... [5m0s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.flag: Still creating... [5m0s elapsed][0m[0m
+[0m[1mmodule.databases.aws_db_instance.auth: Creation complete after 5m0s [id=db-3MXUEO4YPA3SHYOM4EZPI42UK4][0m
+[0m[1mmodule.databases.aws_db_instance.flag: Creation complete after 5m1s [id=db-IVZXGUU4I2DSGTL4MUOE3DQ2AI][0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [5m10s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [5m20s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [5m30s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [5m40s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [5m50s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [6m0s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [6m10s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [6m20s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [6m30s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [6m40s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [6m50s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [7m0s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Still creating... [7m10s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Creation complete after 7m12s [id=togglemaster-cluster][0m
+[0m[1mmodule.eks.aws_eks_node_group.main: Creating...[0m[0m
+[0m[1mmodule.eks.aws_eks_node_group.main: Still creating... [10s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_node_group.main: Still creating... [20s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_node_group.main: Still creating... [30s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_node_group.main: Still creating... [40s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_node_group.main: Still creating... [50s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_node_group.main: Still creating... [1m0s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_node_group.main: Still creating... [1m10s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_node_group.main: Still creating... [1m20s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_node_group.main: Still creating... [1m30s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_node_group.main: Still creating... [1m40s elapsed][0m[0m
+[0m[1mmodule.eks.aws_eks_node_group.main: Creation complete after 1m49s [id=togglemaster-cluster:togglemaster-ng][0m
+Releasing state lock. This may take a few moments...
+[0m[1m[32m
+Apply complete! Resources: 37 added, 0 changed, 0 destroyed.
+[0m[0m[1m[32m
+Outputs:
+
+[0mauth_db_endpoint = "togglemaster-auth-db.cct71m77x5es.us-east-1.rds.amazonaws.com:5432"
+dynamodb_table_name = "ToggleMasterAnalytics"
+ecr_repository_urls = {
+  "analytics-service" = "774736517772.dkr.ecr.us-east-1.amazonaws.com/analytics-service"
+  "auth-service" = "774736517772.dkr.ecr.us-east-1.amazonaws.com/auth-service"
+  "evaluation-service" = "774736517772.dkr.ecr.us-east-1.amazonaws.com/evaluation-service"
+  "flag-service" = "774736517772.dkr.ecr.us-east-1.amazonaws.com/flag-service"
+  "targeting-service" = "774736517772.dkr.ecr.us-east-1.amazonaws.com/targeting-service"
+}
+eks_cluster_endpoint = "https://739C807B41A711579A1ACEBF9DCFAA39.gr7.us-east-1.eks.amazonaws.com"
+eks_cluster_name = "togglemaster-cluster"
+flag_db_endpoint = "togglemaster-flag-db.cct71m77x5es.us-east-1.rds.amazonaws.com:5432"
+redis_endpoint = "togglemaster-redis.gzs1vn.0001.use1.cache.amazonaws.com"
+sqs_queue_url = "https://sqs.us-east-1.amazonaws.com/774736517772/togglemaster-queue"
+targeting_db_endpoint = "togglemaster-targeting-db.cct71m77x5es.us-east-1.rds.amazonaws.com:5432"
+vpc_id = "vpc-0bbf99b003958efd8"
+
+============================================
+  Terraform Apply concluido!
+============================================
+
+Outputs:
+auth_db_endpoint = "togglemaster-auth-db.cct71m77x5es.us-east-1.rds.amazonaws.com:5432"
+dynamodb_table_name = "ToggleMasterAnalytics"
+ecr_repository_urls = {
+  "analytics-service" = "774736517772.dkr.ecr.us-east-1.amazonaws.com/analytics-service"
+  "auth-service" = "774736517772.dkr.ecr.us-east-1.amazonaws.com/auth-service"
+  "evaluation-service" = "774736517772.dkr.ecr.us-east-1.amazonaws.com/evaluation-service"
+  "flag-service" = "774736517772.dkr.ecr.us-east-1.amazonaws.com/flag-service"
+  "targeting-service" = "774736517772.dkr.ecr.us-east-1.amazonaws.com/targeting-service"
+}
+eks_cluster_endpoint = "https://739C807B41A711579A1ACEBF9DCFAA39.gr7.us-east-1.eks.amazonaws.com"
+eks_cluster_name = "togglemaster-cluster"
+flag_db_endpoint = "togglemaster-flag-db.cct71m77x5es.us-east-1.rds.amazonaws.com:5432"
+redis_endpoint = "togglemaster-redis.gzs1vn.0001.use1.cache.amazonaws.com"
+sqs_queue_url = "https://sqs.us-east-1.amazonaws.com/774736517772/togglemaster-queue"
+targeting_db_endpoint = "togglemaster-targeting-db.cct71m77x5es.us-east-1.rds.amazonaws.com:5432"
+vpc_id = "vpc-0bbf99b003958efd8"
+
+
+>>> [2/12] Configurando kubectl para o cluster EKS...
+Updated context arn:aws:eks:us-east-1:774736517772:cluster/togglemaster-cluster in /Users/danieldantas/.kube/config
+NAME                          STATUS   ROLES    AGE   VERSION
+ip-10-0-11-245.ec2.internal   Ready    <none>   60s   v1.33.11-eks-7fcd7ec
+ip-10-0-22-126.ec2.internal   Ready    <none>   59s   v1.33.11-eks-7fcd7ec
+ip-10-0-22-167.ec2.internal   Ready    <none>   59s   v1.33.11-eks-7fcd7ec
+
+>>> [3/12] Gerando secrets a partir dos outputs do Terraform...
+============================================
+  ToggleMaster - Gerador de Secrets
+============================================
+
+>>> Lendo outputs do Terraform...
+  auth_db:    togglemaster-auth-db.cct71m77x5es.us-east-1.rds.amazonaws.com
+  flag_db:    togglemaster-flag-db.cct71m77x5es.us-east-1.rds.amazonaws.com
+  targeting:  togglemaster-targeting-db.cct71m77x5es.us-east-1.rds.amazonaws.com
+  redis:      togglemaster-redis.gzs1vn.0001.use1.cache.amazonaws.com
+  sqs:        https://sqs.us-east-1.amazonaws.com/774736517772/togglemaster-queue
+
+>>> Lendo db_password do terraform.tfvars...
+  db_password: ****enha
+
+>>> Verificando credenciais AWS...
+  AWS_ACCESS_KEY_ID: ASIA3IYPFDKG...
+
+>>> MASTER_KEY: 560345ed...
+
+>>> Gerando secrets em /Users/danieldantas/Documents/vscode.nosync/fiap/TC4-TM/gitops ...
+
+  [OK] gitops/auth-service/secret.yaml
+  [OK] gitops/auth-service/db/secret.yaml
+  [OK] gitops/flag-service/secret.yaml
+  [OK] gitops/flag-service/db/secret.yaml
+  [OK] gitops/targeting-service/secret.yaml
+  [OK] gitops/targeting-service/db/secret.yaml
+  [OK] gitops/evaluation-service/secret.yaml
+  [OK] gitops/analytics-service/secret.yaml
+
+============================================
+  8 secrets gerados com sucesso!
+============================================
+
+Proximo passo - aplicar no cluster:
+  ./scripts/tc4-tm.sh --apply-secrets
+
+NOTA: O SERVICE_API_KEY do evaluation-service sera
+gerado automaticamente apos o auth-service subir.
+Execute: ./scripts/tc4-tm.sh --generate-api-key
+
+
+>>> [4/12] Instalando ArgoCD...
+namespace/argocd created
+customresourcedefinition.apiextensions.k8s.io/applications.argoproj.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/applicationsets.argoproj.io serverside-applied
+customresourcedefinition.apiextensions.k8s.io/appprojects.argoproj.io serverside-applied
+serviceaccount/argocd-application-controller serverside-applied
+serviceaccount/argocd-applicationset-controller serverside-applied
+serviceaccount/argocd-dex-server serverside-applied
+serviceaccount/argocd-notifications-controller serverside-applied
+serviceaccount/argocd-redis serverside-applied
+serviceaccount/argocd-repo-server serverside-applied
+serviceaccount/argocd-server serverside-applied
+role.rbac.authorization.k8s.io/argocd-application-controller serverside-applied
+role.rbac.authorization.k8s.io/argocd-applicationset-controller serverside-applied
+role.rbac.authorization.k8s.io/argocd-dex-server serverside-applied
+role.rbac.authorization.k8s.io/argocd-notifications-controller serverside-applied
+role.rbac.authorization.k8s.io/argocd-redis serverside-applied
+role.rbac.authorization.k8s.io/argocd-server serverside-applied
+clusterrole.rbac.authorization.k8s.io/argocd-application-controller serverside-applied
+clusterrole.rbac.authorization.k8s.io/argocd-applicationset-controller serverside-applied
+clusterrole.rbac.authorization.k8s.io/argocd-server serverside-applied
+rolebinding.rbac.authorization.k8s.io/argocd-application-controller serverside-applied
+rolebinding.rbac.authorization.k8s.io/argocd-applicationset-controller serverside-applied
+rolebinding.rbac.authorization.k8s.io/argocd-dex-server serverside-applied
+rolebinding.rbac.authorization.k8s.io/argocd-notifications-controller serverside-applied
+rolebinding.rbac.authorization.k8s.io/argocd-redis serverside-applied
+rolebinding.rbac.authorization.k8s.io/argocd-server serverside-applied
+clusterrolebinding.rbac.authorization.k8s.io/argocd-application-controller serverside-applied
+clusterrolebinding.rbac.authorization.k8s.io/argocd-applicationset-controller serverside-applied
+clusterrolebinding.rbac.authorization.k8s.io/argocd-server serverside-applied
+configmap/argocd-cm serverside-applied
+configmap/argocd-cmd-params-cm serverside-applied
+configmap/argocd-gpg-keys-cm serverside-applied
+configmap/argocd-notifications-cm serverside-applied
+configmap/argocd-rbac-cm serverside-applied
+configmap/argocd-ssh-known-hosts-cm serverside-applied
+configmap/argocd-tls-certs-cm serverside-applied
+secret/argocd-notifications-secret serverside-applied
+secret/argocd-secret serverside-applied
+service/argocd-applicationset-controller serverside-applied
+service/argocd-dex-server serverside-applied
+service/argocd-metrics serverside-applied
+service/argocd-notifications-controller-metrics serverside-applied
+service/argocd-redis serverside-applied
+service/argocd-repo-server serverside-applied
+service/argocd-server serverside-applied
+service/argocd-server-metrics serverside-applied
+deployment.apps/argocd-applicationset-controller serverside-applied
+deployment.apps/argocd-dex-server serverside-applied
+deployment.apps/argocd-notifications-controller serverside-applied
+deployment.apps/argocd-redis serverside-applied
+deployment.apps/argocd-repo-server serverside-applied
+deployment.apps/argocd-server serverside-applied
+statefulset.apps/argocd-application-controller serverside-applied
+networkpolicy.networking.k8s.io/argocd-application-controller-network-policy serverside-applied
+networkpolicy.networking.k8s.io/argocd-applicationset-controller-network-policy serverside-applied
+networkpolicy.networking.k8s.io/argocd-dex-server-network-policy serverside-applied
+networkpolicy.networking.k8s.io/argocd-notifications-controller-network-policy serverside-applied
+networkpolicy.networking.k8s.io/argocd-redis-network-policy serverside-applied
+networkpolicy.networking.k8s.io/argocd-repo-server-network-policy serverside-applied
+networkpolicy.networking.k8s.io/argocd-server-network-policy serverside-applied
+  Aguardando ArgoCD ficar pronto...
+deployment.apps/argocd-server condition met
+service/argocd-server patched
+  [OK] ArgoCD instalado
+
+>>> [5/12] Aplicando secrets no cluster...
+============================================
+  ToggleMaster - Aplicar Secrets no Cluster
+============================================
+
+>>> Verificando conexao com o cluster...
+  [OK] Conectado ao cluster
+
+>>> Garantindo namespace togglemaster...
+namespace/togglemaster created
+
+>>> Aplicando secrets...
+secret/auth-service-secret created
+  [OK] auth-service/secret.yaml
+secret/auth-db-secret created
+  [OK] auth-service/db/secret.yaml
+secret/flag-service-secret created
+  [OK] flag-service/secret.yaml
+secret/flag-db-secret created
+  [OK] flag-service/db/secret.yaml
+secret/targeting-service-secret created
+  [OK] targeting-service/secret.yaml
+secret/targeting-db-secret created
+  [OK] targeting-service/db/secret.yaml
+secret/evaluation-service-secret created
+  [OK] evaluation-service/secret.yaml
+secret/analytics-service-secret created
+  [OK] analytics-service/secret.yaml
+
+>>> Verificando secrets criados...
+
+analytics-service-secret    Opaque   4     1s
+auth-db-secret              Opaque   4     12s
+auth-service-secret         Opaque   3     13s
+evaluation-service-secret   Opaque   6     3s
+flag-db-secret              Opaque   4     8s
+flag-service-secret         Opaque   2     10s
+targeting-db-secret         Opaque   4     5s
+targeting-service-secret    Opaque   2     6s
+
+============================================
+  Secrets aplicados com sucesso!
+============================================
+
+Proximo passo:
+  kubectl apply -f argocd/applications.yaml
+
+  Reiniciando auth-service para carregar o novo MASTER_KEY...
+  [OK] auth-service atualizado com o novo MASTER_KEY
+
+>>> [6/12] Build e push de imagens Docker...
+  ECR Registry: 774736517772.dkr.ecr.us-east-1.amazonaws.com
+  GitHub User:  dsrdantas
+  Atualizando ECR nos manifestos...
+    [OK] auth-service → 774736517772.dkr.ecr.us-east-1.amazonaws.com/auth-service:latest
+    [OK] flag-service → 774736517772.dkr.ecr.us-east-1.amazonaws.com/flag-service:latest
+    [OK] targeting-service → 774736517772.dkr.ecr.us-east-1.amazonaws.com/targeting-service:latest
+    [OK] evaluation-service → 774736517772.dkr.ecr.us-east-1.amazonaws.com/evaluation-service:latest
+    [OK] analytics-service → 774736517772.dkr.ecr.us-east-1.amazonaws.com/analytics-service:latest
+    [OK] argocd/applications.yaml atualizado (GitHub: dsrdantas)
+  Commitando manifestos atualizados no git...
+ERROR: Permission to dsrdantas/TC4-TM.git denied to danieldantas-jitterbit.
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+    [AVISO] git push falhou — faca push manualmente antes do ArgoCD sync
+    [OK] Manifestos commitados e enviados
+
+Login Succeeded
+  Construindo e enviando imagens (isso pode levar 5-10 minutos)...
+  >>> Building auth-service...
+#0 building with "orbstack" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.21kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/golang:1.24-alpine3.20
+#2 ...
+
+#3 [auth] library/alpine:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#4 [auth] library/golang:pull token for registry-1.docker.io
+#4 DONE 0.0s
+
+#5 [internal] load metadata for docker.io/library/alpine:3.20
+#5 DONE 9.7s
+
+#2 [internal] load metadata for docker.io/library/golang:1.24-alpine3.20
+#2 DONE 9.7s
+
+#6 [internal] load .dockerignore
+#6 transferring context: 2B done
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 DONE 0.0s
+
+#8 [builder 1/6] FROM docker.io/library/golang:1.24-alpine3.20@sha256:9f98e9893fbc798c710f3432baa1e0ac6127799127c3101d2c263c3a954f0abe
+#8 resolve docker.io/library/golang:1.24-alpine3.20@sha256:9f98e9893fbc798c710f3432baa1e0ac6127799127c3101d2c263c3a954f0abe 0.0s done
+#8 DONE 0.1s
+
+#9 [stage-1 1/6] FROM docker.io/library/alpine:3.20@sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc
+#9 resolve docker.io/library/alpine:3.20@sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc 0.0s done
+#9 DONE 0.1s
+
+#7 [internal] load build context
+#7 transferring context: 7.49kB done
+#7 DONE 0.0s
+
+#10 [builder 2/6] WORKDIR /app
+#10 CACHED
+
+#11 [builder 3/6] RUN apk add --no-cache git
+#11 CACHED
+
+#12 [builder 4/6] COPY . .
+#12 DONE 0.1s
+
+#13 [builder 5/6] RUN GONOSUMDB=* GONOSUMCHECK=* go mod tidy
+#13 0.342 go: downloading go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.53.0
+#13 0.343 go: downloading go.opentelemetry.io/otel v1.39.0
+#13 0.343 go: downloading github.com/joho/godotenv v1.5.1
+#13 0.344 go: downloading github.com/jackc/pgx/v4 v4.18.3
+#13 0.355 go: downloading go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.28.0
+#13 0.355 go: downloading go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.28.0
+#13 0.355 go: downloading go.opentelemetry.io/otel/sdk/metric v1.39.0
+#13 0.361 go: downloading go.opentelemetry.io/otel/sdk v1.39.0
+#13 3.553 go: downloading go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.28.0
+#13 4.946 go: downloading go.opentelemetry.io/otel/trace v1.39.0
+#13 5.007 go: downloading github.com/felixge/httpsnoop v1.0.4
+#13 5.008 go: downloading go.opentelemetry.io/otel/metric v1.39.0
+#13 5.011 go: downloading github.com/jackc/pgconn v1.14.3
+#13 5.012 go: downloading github.com/jackc/pgtype v1.14.0
+#13 5.015 go: downloading github.com/go-logr/logr v1.4.3
+#13 5.022 go: downloading github.com/go-logr/stdr v1.2.2
+#13 5.777 go: downloading go.opentelemetry.io/proto/otlp v1.3.1
+#13 5.783 go: downloading google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217
+#13 5.786 go: downloading google.golang.org/grpc v1.79.3
+#13 8.560 go: downloading google.golang.org/protobuf v1.36.10
+#13 8.561 go: downloading github.com/google/uuid v1.6.0
+#13 8.563 go: downloading golang.org/x/sys v0.39.0
+#13 8.683 go: downloading github.com/jackc/pgio v1.0.0
+#13 8.824 go: downloading github.com/jackc/pgproto3/v2 v2.3.3
+#13 11.99 go: downloading go.opentelemetry.io/auto/sdk v1.2.1
+#13 12.19 go: downloading github.com/jackc/chunkreader/v2 v2.0.1
+#13 12.30 go: downloading github.com/jackc/pgpassfile v1.0.0
+#13 12.40 go: downloading github.com/jackc/pgservicefile v0.0.0-20221227161230-091c0ba34f0a
+#13 12.61 go: downloading golang.org/x/crypto v0.46.0
+#13 12.82 go: downloading golang.org/x/text v0.32.0
+#13 23.38 go: downloading github.com/cenkalti/backoff/v4 v4.3.0
+#13 24.47 go: downloading github.com/stretchr/testify v1.11.1
+#13 24.48 go: downloading github.com/Masterminds/semver/v3 v3.1.1
+#13 24.48 go: downloading go.uber.org/goleak v1.3.0
+#13 24.48 go: downloading github.com/google/go-cmp v0.7.0
+#13 24.48 go: downloading github.com/cockroachdb/apd v1.1.0
+#13 24.48 go: downloading github.com/gofrs/uuid v4.0.0+incompatible
+#13 24.48 go: downloading github.com/shopspring/decimal v1.2.0
+#13 24.48 go: downloading github.com/jackc/pgmock v0.0.0-20210724152146-4ad1a8207f65
+#13 24.48 go: downloading github.com/lib/pq v1.10.2
+#13 24.85 go: downloading github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0
+#13 25.05 go: downloading golang.org/x/net v0.48.0
+#13 25.07 go: downloading github.com/cespare/xxhash/v2 v2.3.0
+#13 26.11 go: downloading github.com/pkg/errors v0.9.1
+#13 26.11 go: downloading github.com/golang/protobuf v1.5.4
+#13 26.12 go: downloading github.com/davecgh/go-spew v1.1.1
+#13 26.12 go: downloading github.com/pmezard/go-difflib v1.0.0
+#13 26.20 go: downloading gopkg.in/yaml.v3 v3.0.1
+#13 26.20 go: downloading google.golang.org/genproto/googleapis/api v0.0.0-20251202230838-ff82c1b0f217
+#13 28.24 go: downloading gonum.org/v1/gonum v0.16.0
+#13 DONE 33.4s
+
+#14 [builder 6/6] RUN CGO_ENABLED=0 GOOS=linux go build -ldflags="-s -w" -o auth-service .
+#14 DONE 36.4s
+
+#15 [stage-1 2/6] WORKDIR /app
+#15 CACHED
+
+#16 [stage-1 3/6] RUN apk add --no-cache curl
+#16 CACHED
+
+#17 [stage-1 4/6] RUN addgroup -S appgroup &&     adduser -S appuser -G appgroup -s /sbin/nologin
+#17 CACHED
+
+#18 [stage-1 5/6] COPY --from=builder /app/auth-service .
+#18 DONE 0.1s
+
+#19 [stage-1 6/6] RUN chown -R appuser:appgroup /app
+#19 DONE 0.2s
+
+#20 exporting to image
+#20 exporting layers
+#20 exporting layers 0.6s done
+#20 exporting manifest sha256:1390c7aee34c9b737575b62c1c757602be2d67d5b296235f82ee5251699a18e4
+#20 exporting manifest sha256:1390c7aee34c9b737575b62c1c757602be2d67d5b296235f82ee5251699a18e4 done
+#20 exporting config sha256:596831dd1838c71b681e69dd6836b3fa5418b36316dd5981d4bc4394392b8d84 done
+#20 exporting attestation manifest sha256:d511b0b42065d21132476b602d476189882ab4d512f0045c54dfe5a46a0bf8f9 0.0s done
+#20 exporting manifest list sha256:891c8acc85d26a264c6987ea074c956a027481f76f381615150ac58dc47906d3 done
+#20 naming to 774736517772.dkr.ecr.us-east-1.amazonaws.com/auth-service:latest done
+#20 DONE 0.7s
+
+View build details: docker-desktop://dashboard/build/orbstack/orbstack/zre10h37zq1lgorn6vsrjhjgj
+The push refers to repository [774736517772.dkr.ecr.us-east-1.amazonaws.com/auth-service]
+8091f0aca491: Waiting
+8f1da61254ce: Waiting
+abd315e40f35: Waiting
+25f1d6b1951a: Waiting
+fb3f70b50a86: Waiting
+3b301a53b966: Waiting
+f2adccef4e40: Waiting
+abd315e40f35: Waiting
+25f1d6b1951a: Waiting
+fb3f70b50a86: Waiting
+3b301a53b966: Waiting
+f2adccef4e40: Waiting
+8091f0aca491: Waiting
+8f1da61254ce: Waiting
+fb3f70b50a86: Waiting
+3b301a53b966: Waiting
+f2adccef4e40: Waiting
+8091f0aca491: Waiting
+8f1da61254ce: Waiting
+abd315e40f35: Waiting
+25f1d6b1951a: Waiting
+8f1da61254ce: Waiting
+abd315e40f35: Waiting
+25f1d6b1951a: Waiting
+fb3f70b50a86: Waiting
+3b301a53b966: Waiting
+f2adccef4e40: Waiting
+8091f0aca491: Waiting
+8f1da61254ce: Waiting
+abd315e40f35: Waiting
+25f1d6b1951a: Waiting
+fb3f70b50a86: Waiting
+3b301a53b966: Waiting
+f2adccef4e40: Waiting
+8091f0aca491: Waiting
+8f1da61254ce: Waiting
+abd315e40f35: Waiting
+25f1d6b1951a: Waiting
+fb3f70b50a86: Waiting
+3b301a53b966: Waiting
+f2adccef4e40: Waiting
+8091f0aca491: Waiting
+fb3f70b50a86: Waiting
+3b301a53b966: Waiting
+f2adccef4e40: Waiting
+8091f0aca491: Waiting
+8f1da61254ce: Waiting
+abd315e40f35: Waiting
+25f1d6b1951a: Waiting
+25f1d6b1951a: Waiting
+fb3f70b50a86: Waiting
+3b301a53b966: Waiting
+f2adccef4e40: Waiting
+8091f0aca491: Waiting
+8f1da61254ce: Waiting
+abd315e40f35: Waiting
+fb3f70b50a86: Waiting
+3b301a53b966: Waiting
+f2adccef4e40: Waiting
+8091f0aca491: Waiting
+8f1da61254ce: Waiting
+abd315e40f35: Waiting
+25f1d6b1951a: Waiting
+f2adccef4e40: Waiting
+8091f0aca491: Waiting
+8f1da61254ce: Waiting
+abd315e40f35: Waiting
+25f1d6b1951a: Waiting
+fb3f70b50a86: Waiting
+3b301a53b966: Waiting
+3b301a53b966: Waiting
+f2adccef4e40: Waiting
+8091f0aca491: Waiting
+8f1da61254ce: Waiting
+abd315e40f35: Waiting
+25f1d6b1951a: Waiting
+fb3f70b50a86: Waiting
+3b301a53b966: Waiting
+f2adccef4e40: Waiting
+8091f0aca491: Waiting
+8f1da61254ce: Waiting
+abd315e40f35: Waiting
+25f1d6b1951a: Waiting
+fb3f70b50a86: Waiting
+3b301a53b966: Waiting
+f2adccef4e40: Waiting
+8091f0aca491: Waiting
+8f1da61254ce: Waiting
+abd315e40f35: Waiting
+25f1d6b1951a: Waiting
+fb3f70b50a86: Waiting
+25f1d6b1951a: Waiting
+3b301a53b966: Waiting
+f2adccef4e40: Waiting
+8091f0aca491: Waiting
+8f1da61254ce: Waiting
+abd315e40f35: Waiting
+f2adccef4e40: Waiting
+8091f0aca491: Waiting
+8f1da61254ce: Waiting
+abd315e40f35: Waiting
+25f1d6b1951a: Waiting
+8f1da61254ce: Waiting
+abd315e40f35: Waiting
+25f1d6b1951a: Waiting
+f2adccef4e40: Waiting
+8091f0aca491: Waiting
+8f1da61254ce: Waiting
+fb3f70b50a86: Pushed
+f2adccef4e40: Pushed
+8f1da61254ce: Pushed
+3b301a53b966: Pushed
+25f1d6b1951a: Pushed
+abd315e40f35: Pushed
+8091f0aca491: Pushed
+latest: digest: sha256:891c8acc85d26a264c6987ea074c956a027481f76f381615150ac58dc47906d3 size: 856
+  [OK] auth-service
+  >>> Building flag-service...
+#0 building with "orbstack" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.57kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/python:3.12-alpine3.20
+#2 ...
+
+#3 [auth] library/python:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/python:3.12-alpine3.20
+#2 DONE 8.9s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [builder 1/5] FROM docker.io/library/python:3.12-alpine3.20@sha256:25849f9599e06dfe4d11b552e06f5ac4cc2ad342054eb81f7877e611f6f87c66
+#5 resolve docker.io/library/python:3.12-alpine3.20@sha256:25849f9599e06dfe4d11b552e06f5ac4cc2ad342054eb81f7877e611f6f87c66 0.0s done
+#5 DONE 0.0s
+
+#6 [internal] load build context
+#6 transferring context: 10.93kB done
+#6 DONE 0.0s
+
+#7 [builder 2/5] WORKDIR /app
+#7 CACHED
+
+#8 [builder 3/5] RUN apk add --no-cache     gcc     musl-dev     postgresql-dev     libffi-dev
+#8 CACHED
+
+#9 [builder 4/5] COPY requirements.txt .
+#9 CACHED
+
+#10 [builder 5/5] RUN pip install --upgrade pip &&     pip install --prefix=/usr/local --no-cache-dir -r requirements.txt
+#10 CACHED
+
+#11 [stage-1 3/6] RUN apk add --no-cache     curl     postgresql-libs
+#11 CACHED
+
+#12 [stage-1 4/6] COPY --from=builder /usr/local /usr/local
+#12 CACHED
+
+#13 [stage-1 5/6] COPY . .
+#13 DONE 0.1s
+
+#14 [stage-1 6/6] RUN addgroup -S appgroup &&     adduser -S appuser -G appgroup -s /sbin/nologin &&     chown -R appuser:appgroup /app
+#14 DONE 0.2s
+
+#15 exporting to image
+#15 exporting layers 0.1s done
+#15 exporting manifest sha256:6969189cc7ed92be42c2cd120eca7d3640fb1ad5f87996f9f1334de576acb9da
+#15 exporting manifest sha256:6969189cc7ed92be42c2cd120eca7d3640fb1ad5f87996f9f1334de576acb9da done
+#15 exporting config sha256:4272c4fb79d35bbc2ad48db3d22210163ffedc66b4997333cc6b9f7ef669db80 done
+#15 exporting attestation manifest sha256:80dceb8a5a46078ccb47fd56c41478e4f4cbdc52106d4dd105f1d0cbcf8bae34 0.0s done
+#15 exporting manifest list sha256:fcfe0ed96b05a4266a037207548308bf916246b3aab31cd7aac9393a91c83f6d 0.0s done
+#15 naming to 774736517772.dkr.ecr.us-east-1.amazonaws.com/flag-service:latest done
+#15 DONE 0.2s
+
+View build details: docker-desktop://dashboard/build/orbstack/orbstack/tszhxnd5z9j1bopq8424l42th
+The push refers to repository [774736517772.dkr.ecr.us-east-1.amazonaws.com/flag-service]
+53a1e3fbcb92: Waiting
+71f393a9622a: Waiting
+8be8a68a3e49: Waiting
+9ba11cdccc46: Waiting
+6ebca4e34972: Waiting
+1799ce2dd17e: Waiting
+0a9a5dfd008f: Waiting
+1d7a63b094ee: Waiting
+5f3de34669dd: Waiting
+d57e52836f4d: Waiting
+5f3de34669dd: Waiting
+d57e52836f4d: Waiting
+53a1e3fbcb92: Waiting
+71f393a9622a: Waiting
+8be8a68a3e49: Waiting
+9ba11cdccc46: Waiting
+6ebca4e34972: Waiting
+1799ce2dd17e: Waiting
+0a9a5dfd008f: Waiting
+1d7a63b094ee: Waiting
+1d7a63b094ee: Waiting
+5f3de34669dd: Waiting
+d57e52836f4d: Waiting
+53a1e3fbcb92: Waiting
+71f393a9622a: Waiting
+8be8a68a3e49: Waiting
+9ba11cdccc46: Waiting
+6ebca4e34972: Waiting
+1799ce2dd17e: Waiting
+0a9a5dfd008f: Waiting
+53a1e3fbcb92: Waiting
+71f393a9622a: Waiting
+8be8a68a3e49: Waiting
+9ba11cdccc46: Waiting
+6ebca4e34972: Waiting
+1799ce2dd17e: Waiting
+0a9a5dfd008f: Waiting
+1d7a63b094ee: Waiting
+5f3de34669dd: Waiting
+d57e52836f4d: Waiting
+53a1e3fbcb92: Waiting
+71f393a9622a: Waiting
+8be8a68a3e49: Waiting
+9ba11cdccc46: Waiting
+6ebca4e34972: Waiting
+1799ce2dd17e: Waiting
+0a9a5dfd008f: Waiting
+1d7a63b094ee: Waiting
+5f3de34669dd: Waiting
+d57e52836f4d: Waiting
+6ebca4e34972: Waiting
+1799ce2dd17e: Waiting
+0a9a5dfd008f: Waiting
+1d7a63b094ee: Waiting
+5f3de34669dd: Waiting
+d57e52836f4d: Waiting
+53a1e3fbcb92: Waiting
+71f393a9622a: Waiting
+8be8a68a3e49: Waiting
+9ba11cdccc46: Waiting
+0a9a5dfd008f: Waiting
+1d7a63b094ee: Waiting
+5f3de34669dd: Waiting
+d57e52836f4d: Waiting
+53a1e3fbcb92: Waiting
+71f393a9622a: Waiting
+8be8a68a3e49: Waiting
+9ba11cdccc46: Waiting
+6ebca4e34972: Waiting
+1799ce2dd17e: Waiting
+53a1e3fbcb92: Waiting
+71f393a9622a: Waiting
+8be8a68a3e49: Waiting
+9ba11cdccc46: Waiting
+6ebca4e34972: Waiting
+1799ce2dd17e: Waiting
+0a9a5dfd008f: Waiting
+1d7a63b094ee: Waiting
+5f3de34669dd: Waiting
+d57e52836f4d: Waiting
+1d7a63b094ee: Waiting
+5f3de34669dd: Waiting
+d57e52836f4d: Waiting
+53a1e3fbcb92: Waiting
+71f393a9622a: Waiting
+8be8a68a3e49: Waiting
+9ba11cdccc46: Waiting
+6ebca4e34972: Waiting
+1799ce2dd17e: Waiting
+0a9a5dfd008f: Waiting
+8be8a68a3e49: Waiting
+9ba11cdccc46: Waiting
+6ebca4e34972: Waiting
+1799ce2dd17e: Waiting
+0a9a5dfd008f: Waiting
+1d7a63b094ee: Waiting
+5f3de34669dd: Waiting
+d57e52836f4d: Waiting
+53a1e3fbcb92: Waiting
+71f393a9622a: Waiting
+1d7a63b094ee: Waiting
+5f3de34669dd: Waiting
+d57e52836f4d: Waiting
+53a1e3fbcb92: Waiting
+71f393a9622a: Waiting
+8be8a68a3e49: Waiting
+9ba11cdccc46: Waiting
+6ebca4e34972: Waiting
+1799ce2dd17e: Waiting
+0a9a5dfd008f: Waiting
+53a1e3fbcb92: Waiting
+71f393a9622a: Waiting
+8be8a68a3e49: Waiting
+9ba11cdccc46: Waiting
+6ebca4e34972: Waiting
+1799ce2dd17e: Waiting
+0a9a5dfd008f: Waiting
+1d7a63b094ee: Waiting
+5f3de34669dd: Waiting
+d57e52836f4d: Waiting
+53a1e3fbcb92: Waiting
+71f393a9622a: Waiting
+9ba11cdccc46: Waiting
+6ebca4e34972: Waiting
+1d7a63b094ee: Waiting
+5f3de34669dd: Waiting
+d57e52836f4d: Waiting
+9ba11cdccc46: Waiting
+6ebca4e34972: Waiting
+5f3de34669dd: Waiting
+9ba11cdccc46: Waiting
+6ebca4e34972: Waiting
+53a1e3fbcb92: Pushed
+1d7a63b094ee: Pushed
+d57e52836f4d: Pushed
+71f393a9622a: Pushed
+6ebca4e34972: Pushed
+1799ce2dd17e: Pushed
+0a9a5dfd008f: Pushed
+8be8a68a3e49: Pushed
+9ba11cdccc46: Pushed
+5f3de34669dd: Pushed
+latest: digest: sha256:fcfe0ed96b05a4266a037207548308bf916246b3aab31cd7aac9393a91c83f6d size: 856
+  [OK] flag-service
+  >>> Building targeting-service...
+#0 building with "orbstack" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.64kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/python:3.12-alpine3.20
+#2 DONE 7.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [builder 1/5] FROM docker.io/library/python:3.12-alpine3.20@sha256:25849f9599e06dfe4d11b552e06f5ac4cc2ad342054eb81f7877e611f6f87c66
+#4 resolve docker.io/library/python:3.12-alpine3.20@sha256:25849f9599e06dfe4d11b552e06f5ac4cc2ad342054eb81f7877e611f6f87c66 0.0s done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 10.22kB done
+#5 DONE 0.0s
+
+#6 [builder 2/5] WORKDIR /app
+#6 CACHED
+
+#7 [stage-1 3/6] RUN apk add --no-cache     curl     postgresql-libs
+#7 CACHED
+
+#8 [builder 3/5] RUN apk add --no-cache     gcc     musl-dev     postgresql-dev     libffi-dev
+#8 CACHED
+
+#9 [builder 4/5] COPY requirements.txt .
+#9 CACHED
+
+#10 [builder 5/5] RUN pip install --upgrade pip &&     pip install --prefix=/usr/local --no-cache-dir -r requirements.txt
+#10 CACHED
+
+#11 [stage-1 4/6] COPY --from=builder /usr/local  /usr/local
+#11 CACHED
+
+#12 [stage-1 5/6] COPY . .
+#12 DONE 0.1s
+
+#13 [stage-1 6/6] RUN addgroup -S appgroup &&     adduser -S appuser -G appgroup -s /sbin/nologin &&     chown -R appuser:appgroup /app
+#13 DONE 0.2s
+
+#14 exporting to image
+#14 exporting layers 0.1s done
+#14 exporting manifest sha256:503d5e79b05461240485de9bfd60fb4c7422474e6353b0438d60e98bad25caf2
+#14 exporting manifest sha256:503d5e79b05461240485de9bfd60fb4c7422474e6353b0438d60e98bad25caf2 0.0s done
+#14 exporting config sha256:5c1ac17c7991d32214fed5b81d96accbe5ea7defbb002fda1e3f02bfe18fcb4a 0.0s done
+#14 exporting attestation manifest sha256:a881fe60f20005208e09bc2129ec50a04bf6c6a5f1cff439bd09130fa86d9bb8 0.0s done
+#14 exporting manifest list sha256:6229e5a185b6b49f1884c9bdfa788aa30744bda2abe3f858879d49a691dd7525
+#14 exporting manifest list sha256:6229e5a185b6b49f1884c9bdfa788aa30744bda2abe3f858879d49a691dd7525 0.0s done
+#14 naming to 774736517772.dkr.ecr.us-east-1.amazonaws.com/targeting-service:latest done
+#14 DONE 0.3s
+
+View build details: docker-desktop://dashboard/build/orbstack/orbstack/ubt2gvzlq0g2pzw0g28v22xs9
+The push refers to repository [774736517772.dkr.ecr.us-east-1.amazonaws.com/targeting-service]
+33ac18dcb94d: Waiting
+1d7a63b094ee: Waiting
+0a9a5dfd008f: Waiting
+6ebca4e34972: Waiting
+09e49c394423: Waiting
+8be8a68a3e49: Waiting
+1799ce2dd17e: Waiting
+9ba11cdccc46: Waiting
+ddcc75c5caca: Waiting
+f412a2cd9fbb: Waiting
+f412a2cd9fbb: Waiting
+33ac18dcb94d: Waiting
+1d7a63b094ee: Waiting
+0a9a5dfd008f: Waiting
+6ebca4e34972: Waiting
+09e49c394423: Waiting
+8be8a68a3e49: Waiting
+1799ce2dd17e: Waiting
+9ba11cdccc46: Waiting
+ddcc75c5caca: Waiting
+8be8a68a3e49: Waiting
+1799ce2dd17e: Waiting
+9ba11cdccc46: Waiting
+ddcc75c5caca: Waiting
+f412a2cd9fbb: Waiting
+33ac18dcb94d: Waiting
+1d7a63b094ee: Waiting
+0a9a5dfd008f: Waiting
+6ebca4e34972: Waiting
+09e49c394423: Waiting
+f412a2cd9fbb: Waiting
+33ac18dcb94d: Waiting
+1d7a63b094ee: Waiting
+0a9a5dfd008f: Waiting
+6ebca4e34972: Waiting
+09e49c394423: Waiting
+8be8a68a3e49: Waiting
+1799ce2dd17e: Waiting
+9ba11cdccc46: Waiting
+ddcc75c5caca: Waiting
+0a9a5dfd008f: Waiting
+6ebca4e34972: Waiting
+09e49c394423: Waiting
+8be8a68a3e49: Waiting
+1799ce2dd17e: Waiting
+9ba11cdccc46: Waiting
+ddcc75c5caca: Waiting
+f412a2cd9fbb: Waiting
+33ac18dcb94d: Waiting
+1d7a63b094ee: Waiting
+f412a2cd9fbb: Waiting
+33ac18dcb94d: Waiting
+1d7a63b094ee: Waiting
+0a9a5dfd008f: Waiting
+6ebca4e34972: Waiting
+09e49c394423: Waiting
+8be8a68a3e49: Waiting
+1799ce2dd17e: Waiting
+9ba11cdccc46: Waiting
+ddcc75c5caca: Waiting
+8be8a68a3e49: Waiting
+1799ce2dd17e: Waiting
+9ba11cdccc46: Waiting
+ddcc75c5caca: Waiting
+f412a2cd9fbb: Waiting
+33ac18dcb94d: Waiting
+1d7a63b094ee: Waiting
+0a9a5dfd008f: Waiting
+6ebca4e34972: Waiting
+09e49c394423: Waiting
+f412a2cd9fbb: Waiting
+33ac18dcb94d: Waiting
+1d7a63b094ee: Waiting
+0a9a5dfd008f: Waiting
+6ebca4e34972: Waiting
+09e49c394423: Waiting
+8be8a68a3e49: Waiting
+1799ce2dd17e: Waiting
+9ba11cdccc46: Waiting
+ddcc75c5caca: Waiting
+6ebca4e34972: Waiting
+09e49c394423: Waiting
+8be8a68a3e49: Waiting
+1799ce2dd17e: Waiting
+9ba11cdccc46: Waiting
+ddcc75c5caca: Waiting
+f412a2cd9fbb: Waiting
+33ac18dcb94d: Waiting
+1d7a63b094ee: Waiting
+0a9a5dfd008f: Waiting
+1799ce2dd17e: Waiting
+9ba11cdccc46: Waiting
+ddcc75c5caca: Waiting
+f412a2cd9fbb: Waiting
+33ac18dcb94d: Waiting
+1d7a63b094ee: Waiting
+0a9a5dfd008f: Waiting
+6ebca4e34972: Waiting
+09e49c394423: Waiting
+8be8a68a3e49: Waiting
+f412a2cd9fbb: Waiting
+33ac18dcb94d: Waiting
+1d7a63b094ee: Waiting
+0a9a5dfd008f: Waiting
+09e49c394423: Waiting
+8be8a68a3e49: Waiting
+1799ce2dd17e: Waiting
+9ba11cdccc46: Waiting
+ddcc75c5caca: Waiting
+8be8a68a3e49: Waiting
+1799ce2dd17e: Waiting
+9ba11cdccc46: Waiting
+ddcc75c5caca: Waiting
+f412a2cd9fbb: Waiting
+33ac18dcb94d: Waiting
+1d7a63b094ee: Waiting
+0a9a5dfd008f: Waiting
+09e49c394423: Waiting
+ddcc75c5caca: Waiting
+f412a2cd9fbb: Waiting
+33ac18dcb94d: Waiting
+1d7a63b094ee: Waiting
+0a9a5dfd008f: Waiting
+09e49c394423: Waiting
+8be8a68a3e49: Waiting
+1799ce2dd17e: Waiting
+9ba11cdccc46: Waiting
+33ac18dcb94d: Waiting
+1d7a63b094ee: Waiting
+0a9a5dfd008f: Waiting
+09e49c394423: Waiting
+8be8a68a3e49: Waiting
+1799ce2dd17e: Waiting
+9ba11cdccc46: Waiting
+ddcc75c5caca: Waiting
+f412a2cd9fbb: Waiting
+ddcc75c5caca: Waiting
+f412a2cd9fbb: Waiting
+33ac18dcb94d: Waiting
+1d7a63b094ee: Waiting
+0a9a5dfd008f: Waiting
+09e49c394423: Waiting
+8be8a68a3e49: Waiting
+1799ce2dd17e: Waiting
+9ba11cdccc46: Waiting
+0a9a5dfd008f: Waiting
+09e49c394423: Waiting
+8be8a68a3e49: Waiting
+1799ce2dd17e: Waiting
+9ba11cdccc46: Waiting
+ddcc75c5caca: Waiting
+f412a2cd9fbb: Waiting
+33ac18dcb94d: Waiting
+1d7a63b094ee: Waiting
+1d7a63b094ee: Waiting
+8be8a68a3e49: Waiting
+1799ce2dd17e: Waiting
+9ba11cdccc46: Waiting
+9ba11cdccc46: Waiting
+6ebca4e34972: Pushed
+f412a2cd9fbb: Pushed
+09e49c394423: Pushed
+33ac18dcb94d: Pushed
+1d7a63b094ee: Pushed
+1799ce2dd17e: Pushed
+9ba11cdccc46: Pushed
+0a9a5dfd008f: Pushed
+8be8a68a3e49: Pushed
+ddcc75c5caca: Pushed
+latest: digest: sha256:6229e5a185b6b49f1884c9bdfa788aa30744bda2abe3f858879d49a691dd7525 size: 856
+  [OK] targeting-service
+  >>> Building evaluation-service...
+#0 building with "orbstack" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.23kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/golang:1.24-alpine3.20
+#2 ...
+
+#3 [internal] load metadata for docker.io/library/alpine:3.20
+#3 DONE 13.1s
+
+#2 [internal] load metadata for docker.io/library/golang:1.24-alpine3.20
+#2 DONE 13.1s
+
+#4 [internal] load .dockerignore
+#4 transferring context: 2B done
+#4 DONE 0.0s
+
+#5 [builder 1/6] FROM docker.io/library/golang:1.24-alpine3.20@sha256:9f98e9893fbc798c710f3432baa1e0ac6127799127c3101d2c263c3a954f0abe
+#5 resolve docker.io/library/golang:1.24-alpine3.20@sha256:9f98e9893fbc798c710f3432baa1e0ac6127799127c3101d2c263c3a954f0abe 0.0s done
+#5 DONE 0.1s
+
+#6 [stage-1 1/6] FROM docker.io/library/alpine:3.20@sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc
+#6 resolve docker.io/library/alpine:3.20@sha256:d9e853e87e55526f6b2917df91a2115c36dd7c696a35be12163d44e6e2a4b6bc 0.0s done
+#6 DONE 0.1s
+
+#7 [internal] load build context
+#7 transferring context: 6.63kB 0.0s done
+#7 DONE 0.0s
+
+#8 [builder 2/6] RUN apk add --no-cache git bash build-base
+#8 CACHED
+
+#9 [builder 3/6] WORKDIR /app
+#9 CACHED
+
+#10 [builder 4/6] COPY . .
+#10 DONE 0.1s
+
+#11 [builder 5/6] RUN GONOSUMDB=* GONOSUMCHECK=* go mod tidy
+#11 0.240 go: downloading github.com/go-redis/redis/extra/redisotel/v8 v8.11.5
+#11 0.240 go: downloading github.com/go-redis/redis/v8 v8.11.5
+#11 0.240 go: downloading github.com/aws/aws-sdk-go v1.51.10
+#11 0.250 go: downloading github.com/joho/godotenv v1.5.1
+#11 0.256 go: downloading go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.53.0
+#11 0.258 go: downloading go.opentelemetry.io/otel v1.39.0
+#11 3.239 go: downloading go.opentelemetry.io/otel/exporters/otlp/otlpmetric/otlpmetricgrpc v1.28.0
+#11 3.255 go: downloading go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.28.0
+#11 3.765 go: downloading go.opentelemetry.io/otel/sdk/metric v1.39.0
+#11 3.793 go: downloading go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.28.0
+#11 4.223 go: downloading go.opentelemetry.io/otel/sdk v1.39.0
+#11 4.225 go: downloading go.opentelemetry.io/otel/trace v1.39.0
+#11 4.285 go: downloading github.com/felixge/httpsnoop v1.0.4
+#11 4.301 go: downloading go.opentelemetry.io/otel/metric v1.39.0
+#11 4.985 go: downloading github.com/cespare/xxhash/v2 v2.3.0
+#11 4.991 go: downloading github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f
+#11 4.999 go: downloading github.com/onsi/gomega v1.27.6
+#11 5.005 go: downloading github.com/go-redis/redis/extra/rediscmd/v8 v8.11.5
+#11 5.220 go: downloading go.opentelemetry.io/proto/otlp v1.3.1
+#11 5.357 go: downloading google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217
+#11 6.501 go: downloading google.golang.org/grpc v1.79.3
+#11 10.35 go: downloading google.golang.org/protobuf v1.36.10
+#11 10.35 go: downloading github.com/go-logr/logr v1.4.3
+#11 10.35 go: downloading github.com/go-logr/stdr v1.2.2
+#11 13.49 go: downloading github.com/google/uuid v1.6.0
+#11 13.84 go: downloading golang.org/x/sys v0.39.0
+#11 16.11 go: downloading github.com/cenkalti/backoff/v4 v4.3.0
+#11 18.24 go: downloading github.com/stretchr/testify v1.11.1
+#11 18.24 go: downloading github.com/onsi/ginkgo v1.16.5
+#11 18.24 go: downloading go.uber.org/goleak v1.3.0
+#11 18.24 go: downloading github.com/google/go-cmp v0.7.0
+#11 18.98 go: downloading github.com/grpc-ecosystem/grpc-gateway/v2 v2.20.0
+#11 19.03 go: downloading golang.org/x/net v0.48.0
+#11 19.03 go: downloading go.opentelemetry.io/auto/sdk v1.2.1
+#11 19.05 go: downloading github.com/davecgh/go-spew v1.1.1
+#11 19.05 go: downloading github.com/pmezard/go-difflib v1.0.0
+#11 20.12 go: downloading gopkg.in/yaml.v3 v3.0.1
+#11 20.64 go: downloading github.com/golang/protobuf v1.5.4
+#11 22.53 go: downloading google.golang.org/genproto/googleapis/api v0.0.0-20251202230838-ff82c1b0f217
+#11 22.53 go: downloading github.com/nxadm/tail v1.4.8
+#11 22.53 go: downloading golang.org/x/text v0.32.0
+#11 23.01 go: downloading gonum.org/v1/gonum v0.16.0
+#11 23.01 go: downloading gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7
+#11 37.93 go: downloading github.com/fsnotify/fsnotify v1.4.9
+#11 56.82 go: downloading github.com/jmespath/go-jmespath v0.4.0
+#11 57.35 go: downloading github.com/jmespath/go-jmespath/internal/testify v1.5.1
+#11 57.68 go: downloading gopkg.in/yaml.v2 v2.4.0
+#11 DONE 59.0s
+
+#12 [builder 6/6] RUN CGO_ENABLED=0 GOOS=linux go build -o evaluation-service .
+#12 DONE 37.7s
+
+#13 [stage-1 2/6] RUN apk add --no-cache curl
+#13 CACHED
+
+#14 [stage-1 3/6] RUN addgroup -S appgroup &&     adduser -S appuser -G appgroup -s /sbin/nologin
+#14 CACHED
+
+#15 [stage-1 4/6] WORKDIR /app
+#15 CACHED
+
+#16 [stage-1 5/6] COPY --from=builder /app/evaluation-service .
+#16 DONE 0.1s
+
+#17 [stage-1 6/6] RUN chown -R appuser:appgroup /app
+#17 DONE 0.2s
+
+#18 exporting to image
+#18 exporting layers
+#18 exporting layers 0.9s done
+#18 exporting manifest sha256:a2ec6e6d24d927d26a39655d63c0a0f8d45703daefc491d66187945da9b5a3d0 done
+#18 exporting config sha256:0fb36946fc86c453dcfafb342d71fb0352ae9622a711dfcea42b6f7ed352d9d1 done
+#18 exporting attestation manifest sha256:a8bc5bf9518f663e1bed89d8390d8139b3bf8f01f8e209645625f896dd21a0a4 0.0s done
+#18 exporting manifest list sha256:ae91a3aa161531a34098b7ab75b91f5af0269cbdfdcd0b56c868ec72e39fe4a1 done
+#18 naming to 774736517772.dkr.ecr.us-east-1.amazonaws.com/evaluation-service:latest done
+#18 DONE 0.9s
+
+View build details: docker-desktop://dashboard/build/orbstack/orbstack/mecn8aamxcl7jq9kdukmg41fl
+The push refers to repository [774736517772.dkr.ecr.us-east-1.amazonaws.com/evaluation-service]
+aaede87d53b5: Waiting
+26a934fc9307: Waiting
+25f1d6b1951a: Waiting
+9acc8f5c2a16: Waiting
+3eae5d6d047f: Waiting
+8571e298ea5d: Waiting
+7faf34265e2d: Waiting
+3eae5d6d047f: Waiting
+8571e298ea5d: Waiting
+7faf34265e2d: Waiting
+aaede87d53b5: Waiting
+26a934fc9307: Waiting
+25f1d6b1951a: Waiting
+9acc8f5c2a16: Waiting
+aaede87d53b5: Waiting
+26a934fc9307: Waiting
+25f1d6b1951a: Waiting
+9acc8f5c2a16: Waiting
+3eae5d6d047f: Waiting
+8571e298ea5d: Waiting
+7faf34265e2d: Waiting
+aaede87d53b5: Waiting
+26a934fc9307: Waiting
+25f1d6b1951a: Waiting
+9acc8f5c2a16: Waiting
+3eae5d6d047f: Waiting
+8571e298ea5d: Waiting
+7faf34265e2d: Waiting
+7faf34265e2d: Waiting
+aaede87d53b5: Waiting
+26a934fc9307: Waiting
+25f1d6b1951a: Waiting
+9acc8f5c2a16: Waiting
+3eae5d6d047f: Waiting
+8571e298ea5d: Waiting
+8571e298ea5d: Waiting
+7faf34265e2d: Waiting
+aaede87d53b5: Waiting
+26a934fc9307: Waiting
+25f1d6b1951a: Waiting
+9acc8f5c2a16: Waiting
+3eae5d6d047f: Waiting
+7faf34265e2d: Waiting
+aaede87d53b5: Waiting
+26a934fc9307: Waiting
+25f1d6b1951a: Waiting
+9acc8f5c2a16: Waiting
+3eae5d6d047f: Waiting
+8571e298ea5d: Waiting
+7faf34265e2d: Waiting
+aaede87d53b5: Waiting
+26a934fc9307: Waiting
+25f1d6b1951a: Waiting
+9acc8f5c2a16: Waiting
+3eae5d6d047f: Waiting
+8571e298ea5d: Waiting
+9acc8f5c2a16: Waiting
+3eae5d6d047f: Waiting
+8571e298ea5d: Waiting
+7faf34265e2d: Waiting
+aaede87d53b5: Waiting
+26a934fc9307: Waiting
+25f1d6b1951a: Waiting
+8571e298ea5d: Waiting
+7faf34265e2d: Waiting
+aaede87d53b5: Waiting
+26a934fc9307: Waiting
+25f1d6b1951a: Waiting
+9acc8f5c2a16: Waiting
+3eae5d6d047f: Waiting
+9acc8f5c2a16: Waiting
+3eae5d6d047f: Waiting
+8571e298ea5d: Waiting
+7faf34265e2d: Waiting
+aaede87d53b5: Waiting
+26a934fc9307: Waiting
+25f1d6b1951a: Waiting
+3eae5d6d047f: Waiting
+8571e298ea5d: Waiting
+7faf34265e2d: Waiting
+aaede87d53b5: Waiting
+26a934fc9307: Waiting
+25f1d6b1951a: Waiting
+9acc8f5c2a16: Waiting
+25f1d6b1951a: Waiting
+9acc8f5c2a16: Waiting
+3eae5d6d047f: Waiting
+8571e298ea5d: Waiting
+7faf34265e2d: Waiting
+aaede87d53b5: Waiting
+26a934fc9307: Waiting
+aaede87d53b5: Waiting
+25f1d6b1951a: Waiting
+3eae5d6d047f: Waiting
+8571e298ea5d: Waiting
+3eae5d6d047f: Waiting
+8571e298ea5d: Waiting
+3eae5d6d047f: Pushed
+8571e298ea5d: Pushed
+aaede87d53b5: Pushed
+25f1d6b1951a: Pushed
+9acc8f5c2a16: Pushed
+7faf34265e2d: Pushed
+26a934fc9307: Pushed
+latest: digest: sha256:ae91a3aa161531a34098b7ab75b91f5af0269cbdfdcd0b56c868ec72e39fe4a1 size: 856
+  [OK] evaluation-service
+  >>> Building analytics-service...
+#0 building with "orbstack" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 1.61kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/python:3.12-alpine3.20
+#2 DONE 7.8s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [builder 1/5] FROM docker.io/library/python:3.12-alpine3.20@sha256:25849f9599e06dfe4d11b552e06f5ac4cc2ad342054eb81f7877e611f6f87c66
+#4 resolve docker.io/library/python:3.12-alpine3.20@sha256:25849f9599e06dfe4d11b552e06f5ac4cc2ad342054eb81f7877e611f6f87c66 0.0s done
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 4.05kB done
+#5 DONE 0.0s
+
+#6 [builder 2/5] WORKDIR /app
+#6 CACHED
+
+#7 [stage-1 3/6] RUN apk add --no-cache curl
+#7 CACHED
+
+#8 [builder 3/5] RUN apk add --no-cache     gcc     musl-dev     libffi-dev     postgresql-dev
+#8 CACHED
+
+#9 [builder 4/5] COPY requirements.txt .
+#9 CACHED
+
+#10 [builder 5/5] RUN pip install --upgrade pip &&     pip install --prefix=/usr/local --no-cache-dir -r requirements.txt
+#10 CACHED
+
+#11 [stage-1 4/6] COPY --from=builder /usr/local /usr/local
+#11 CACHED
+
+#12 [stage-1 5/6] COPY . .
+#12 DONE 0.1s
+
+#13 [stage-1 6/6] RUN addgroup -S appgroup &&     adduser -S appuser -G appgroup -s /sbin/nologin &&     chown -R appuser:appgroup /app
+#13 DONE 0.2s
+
+#14 exporting to image
+#14 exporting layers 0.1s done
+#14 exporting manifest sha256:b437a57e0a4b6dd7edf08f04017452d01b8131009ee651ca0d119408cbabc282
+#14 exporting manifest sha256:b437a57e0a4b6dd7edf08f04017452d01b8131009ee651ca0d119408cbabc282 done
+#14 exporting config sha256:dc2103276f48eb3a6cb49712432a402dba8a55fa1ac9cd1db27814d4f54dc7b9 0.0s done
+#14 exporting attestation manifest sha256:fe7969649191364a9fb2df368c9cd855b67e3d83987d2a7e74bf3aab794b75e7 0.0s done
+#14 exporting manifest list sha256:90765e34a880eda4b500bdea05dad5dc171cbf82c6ab22d81112e53e8a63e0ae 0.0s done
+#14 naming to 774736517772.dkr.ecr.us-east-1.amazonaws.com/analytics-service:latest
+#14 naming to 774736517772.dkr.ecr.us-east-1.amazonaws.com/analytics-service:latest done
+#14 DONE 0.2s
+
+View build details: docker-desktop://dashboard/build/orbstack/orbstack/mbduua8027km6wdh5kxotbf1b
+The push refers to repository [774736517772.dkr.ecr.us-east-1.amazonaws.com/analytics-service]
+84211a09e857: Waiting
+1799ce2dd17e: Waiting
+6ebca4e34972: Waiting
+23905ca31a9f: Waiting
+bfe34049ab82: Waiting
+0a9a5dfd008f: Waiting
+8be8a68a3e49: Waiting
+1d7a63b094ee: Waiting
+2c35f377dad9: Waiting
+5e2382c41da5: Waiting
+bfe34049ab82: Waiting
+0a9a5dfd008f: Waiting
+8be8a68a3e49: Waiting
+1d7a63b094ee: Waiting
+2c35f377dad9: Waiting
+5e2382c41da5: Waiting
+84211a09e857: Waiting
+1799ce2dd17e: Waiting
+6ebca4e34972: Waiting
+23905ca31a9f: Waiting
+bfe34049ab82: Waiting
+0a9a5dfd008f: Waiting
+8be8a68a3e49: Waiting
+1d7a63b094ee: Waiting
+2c35f377dad9: Waiting
+5e2382c41da5: Waiting
+84211a09e857: Waiting
+1799ce2dd17e: Waiting
+6ebca4e34972: Waiting
+23905ca31a9f: Waiting
+84211a09e857: Waiting
+1799ce2dd17e: Waiting
+6ebca4e34972: Waiting
+23905ca31a9f: Waiting
+bfe34049ab82: Waiting
+0a9a5dfd008f: Waiting
+8be8a68a3e49: Waiting
+1d7a63b094ee: Waiting
+2c35f377dad9: Waiting
+5e2382c41da5: Waiting
+0a9a5dfd008f: Waiting
+8be8a68a3e49: Waiting
+1d7a63b094ee: Waiting
+2c35f377dad9: Waiting
+5e2382c41da5: Waiting
+84211a09e857: Waiting
+1799ce2dd17e: Waiting
+6ebca4e34972: Waiting
+23905ca31a9f: Waiting
+bfe34049ab82: Waiting
+0a9a5dfd008f: Waiting
+8be8a68a3e49: Waiting
+1d7a63b094ee: Waiting
+2c35f377dad9: Waiting
+5e2382c41da5: Waiting
+84211a09e857: Waiting
+1799ce2dd17e: Waiting
+6ebca4e34972: Waiting
+23905ca31a9f: Waiting
+bfe34049ab82: Waiting
+0a9a5dfd008f: Waiting
+8be8a68a3e49: Waiting
+1d7a63b094ee: Waiting
+2c35f377dad9: Waiting
+5e2382c41da5: Waiting
+84211a09e857: Waiting
+1799ce2dd17e: Waiting
+6ebca4e34972: Waiting
+23905ca31a9f: Waiting
+bfe34049ab82: Waiting
+bfe34049ab82: Waiting
+0a9a5dfd008f: Waiting
+8be8a68a3e49: Waiting
+1d7a63b094ee: Waiting
+2c35f377dad9: Waiting
+5e2382c41da5: Waiting
+84211a09e857: Waiting
+1799ce2dd17e: Waiting
+6ebca4e34972: Waiting
+23905ca31a9f: Waiting
+0a9a5dfd008f: Waiting
+8be8a68a3e49: Waiting
+1d7a63b094ee: Waiting
+2c35f377dad9: Waiting
+5e2382c41da5: Waiting
+84211a09e857: Waiting
+1799ce2dd17e: Waiting
+6ebca4e34972: Waiting
+23905ca31a9f: Waiting
+bfe34049ab82: Waiting
+bfe34049ab82: Waiting
+0a9a5dfd008f: Waiting
+8be8a68a3e49: Waiting
+1d7a63b094ee: Waiting
+2c35f377dad9: Waiting
+5e2382c41da5: Waiting
+84211a09e857: Waiting
+1799ce2dd17e: Waiting
+6ebca4e34972: Waiting
+23905ca31a9f: Waiting
+8be8a68a3e49: Waiting
+1d7a63b094ee: Waiting
+2c35f377dad9: Waiting
+5e2382c41da5: Waiting
+84211a09e857: Waiting
+1799ce2dd17e: Waiting
+6ebca4e34972: Waiting
+23905ca31a9f: Waiting
+bfe34049ab82: Waiting
+0a9a5dfd008f: Waiting
+1799ce2dd17e: Waiting
+6ebca4e34972: Waiting
+23905ca31a9f: Waiting
+bfe34049ab82: Waiting
+0a9a5dfd008f: Waiting
+8be8a68a3e49: Waiting
+1d7a63b094ee: Waiting
+2c35f377dad9: Waiting
+5e2382c41da5: Waiting
+84211a09e857: Waiting
+bfe34049ab82: Waiting
+0a9a5dfd008f: Waiting
+8be8a68a3e49: Waiting
+1d7a63b094ee: Waiting
+2c35f377dad9: Waiting
+5e2382c41da5: Waiting
+84211a09e857: Waiting
+1799ce2dd17e: Waiting
+6ebca4e34972: Waiting
+23905ca31a9f: Waiting
+84211a09e857: Waiting
+1799ce2dd17e: Waiting
+6ebca4e34972: Waiting
+23905ca31a9f: Waiting
+bfe34049ab82: Waiting
+0a9a5dfd008f: Waiting
+8be8a68a3e49: Waiting
+1d7a63b094ee: Waiting
+5e2382c41da5: Waiting
+1799ce2dd17e: Waiting
+6ebca4e34972: Waiting
+bfe34049ab82: Waiting
+0a9a5dfd008f: Waiting
+1d7a63b094ee: Waiting
+5e2382c41da5: Waiting
+1799ce2dd17e: Waiting
+6ebca4e34972: Waiting
+bfe34049ab82: Waiting
+0a9a5dfd008f: Waiting
+1d7a63b094ee: Waiting
+5e2382c41da5: Waiting
+bfe34049ab82: Waiting
+bfe34049ab82: Waiting
+1d7a63b094ee: Pushed
+2c35f377dad9: Pushed
+84211a09e857: Pushed
+6ebca4e34972: Pushed
+bfe34049ab82: Pushed
+1799ce2dd17e: Pushed
+23905ca31a9f: Pushed
+0a9a5dfd008f: Pushed
+8be8a68a3e49: Pushed
+5e2382c41da5: Pushed
+latest: digest: sha256:90765e34a880eda4b500bdea05dad5dc171cbf82c6ab22d81112e53e8a63e0ae size: 856
+  [OK] analytics-service
+
+>>> [7/12] Aplicando ArgoCD Applications...
+appproject.argoproj.io/togglemaster created
+application.argoproj.io/auth-service created
+application.argoproj.io/flag-service created
+application.argoproj.io/targeting-service created
+application.argoproj.io/evaluation-service created
+application.argoproj.io/analytics-service created
+application.argoproj.io/togglemaster-shared created
+application.argoproj.io/monitoring-namespace created
+  [OK] Applications criadas
+  Forcando imagens corretas no cluster (safety net)...
+deployment.apps/targeting-service image updated
+deployment.apps/evaluation-service image updated
+deployment.apps/analytics-service image updated
+  [OK] Imagens atualizadas
+
+>>> [8/12] Instalando NGINX Ingress Controller...
+namespace/ingress-nginx created
+serviceaccount/ingress-nginx created
+serviceaccount/ingress-nginx-admission created
+role.rbac.authorization.k8s.io/ingress-nginx created
+role.rbac.authorization.k8s.io/ingress-nginx-admission created
+clusterrole.rbac.authorization.k8s.io/ingress-nginx created
+clusterrole.rbac.authorization.k8s.io/ingress-nginx-admission created
+rolebinding.rbac.authorization.k8s.io/ingress-nginx created
+rolebinding.rbac.authorization.k8s.io/ingress-nginx-admission created
+clusterrolebinding.rbac.authorization.k8s.io/ingress-nginx created
+clusterrolebinding.rbac.authorization.k8s.io/ingress-nginx-admission created
+configmap/ingress-nginx-controller created
+service/ingress-nginx-controller created
+service/ingress-nginx-controller-admission created
+deployment.apps/ingress-nginx-controller created
+job.batch/ingress-nginx-admission-create created
+job.batch/ingress-nginx-admission-patch created
+ingressclass.networking.k8s.io/nginx created
+validatingwebhookconfiguration.admissionregistration.k8s.io/ingress-nginx-admission created
+  [OK] NGINX Ingress instalado
+
+>>> [9/12] Aguardando pods do ToggleMaster ficarem prontos...
+  (isso pode levar 2-5 minutos)
+  Aguardando auth-service... Waiting for deployment "auth-service" rollout to finish: 0 of 2 updated replicas are available...
+(pode demorar mais)
+  Aguardando flag-service... Waiting for deployment "flag-service" rollout to finish: 0 of 2 updated replicas are available...
+(pode demorar mais)
+  Aguardando targeting-service... Waiting for deployment "targeting-service" rollout to finish: 1 old replicas are pending termination...
+(pode demorar mais)
+  Aguardando evaluation-service... Waiting for deployment "evaluation-service" rollout to finish: 1 old replicas are pending termination...
+(pode demorar mais)
+  Aguardando analytics-service... Waiting for deployment "analytics-service" rollout to finish: 1 old replicas are pending termination...
+(pode demorar mais)
+
+NAME                                  READY   STATUS             RESTARTS   AGE
+analytics-service-6f8b5cf4d8-fpd9x    1/1     Running            0          10m
+analytics-service-7fbd8c94dc-nnxpw    0/1     InvalidImageName   0          10m
+analytics-service-7fbd8c94dc-nxgpb    0/1     InvalidImageName   0          10m
+auth-db-init-job-ggvpb                0/1     Completed          0          10m
+auth-service-859859f959-nblhf         0/1     InvalidImageName   0          10m
+auth-service-859859f959-ppnzj         0/1     InvalidImageName   0          10m
+evaluation-service-5f949569c7-w9w5w   1/1     Running            0          10m
+evaluation-service-7b47b64569-2bpk9   0/1     InvalidImageName   0          10m
+evaluation-service-7b47b64569-8lkwk   0/1     InvalidImageName   0          10m
+flag-db-init-job-4pzmb                0/1     Completed          0          10m
+flag-service-6fd5cf7f5-7f2qk          0/1     InvalidImageName   0          10m
+flag-service-6fd5cf7f5-rqqfq          0/1     InvalidImageName   0          10m
+targeting-db-init-job-444wm           0/1     Completed          0          10m
+targeting-service-7c5ff475dc-ghcf7    0/1     InvalidImageName   0          10m
+targeting-service-7c5ff475dc-kz57h    0/1     InvalidImageName   0          10m
+targeting-service-8565847c4f-xr5fw    1/1     Running            0          10m
+
+>>> [10/12] Gerando SERVICE_API_KEY...
+============================================
+  ToggleMaster - Gerar SERVICE_API_KEY
+============================================
+
+>>> Verificando se auth-service esta Running...
+ERRO: auth-service nao esta Running (status: Pending)
+Aguarde os pods subirem: kubectl get pods -n togglemaster -w

@@ -1,0 +1,180 @@
+# Self-Healing Bridge
+# Translates Alertmanager webhook payloads into GitHub repository_dispatch events,
+# triggering the self-healing.yaml workflow to do kubectl rollout restart.
+#
+# Requires: gitops/monitoring/self-healing-bridge/secret.yaml
+#   GITHUB_TOKEN: Fine-grained PAT with "Actions: write" on dsrdantas/TC4-TM
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: self-healing-bridge
+  namespace: monitoring
+data:
+  bridge.py: |
+    #!/usr/bin/env python3
+    from http.server import HTTPServer, BaseHTTPRequestHandler
+    import json, urllib.request, urllib.error, os
+
+    GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN', '')
+    GITHUB_REPO  = os.environ.get('GITHUB_REPO', 'dsrdantas/TC4-TM')
+    PORT         = int(os.environ.get('PORT', '9095'))
+
+    KNOWN_SERVICES = [
+        'auth-service', 'flag-service', 'targeting-service',
+        'evaluation-service', 'analytics-service',
+    ]
+
+    def extract_service(labels):
+        for key in ('service', 'service_name'):
+            if labels.get(key) in KNOWN_SERVICES:
+                return labels[key]
+        pod = labels.get('pod', '')
+        for svc in KNOWN_SERVICES:
+            if pod.startswith(svc):
+                return svc
+        return None
+
+    def dispatch(service, alertname):
+        if not GITHUB_TOKEN:
+            print(f'[WARN] GITHUB_TOKEN not set, skipping {service}', flush=True)
+            return False
+        body = json.dumps({
+            'event_type': 'self-healing',
+            'client_payload': {'service': service, 'alert': alertname},
+        }).encode()
+        req = urllib.request.Request(
+            f'https://api.github.com/repos/{GITHUB_REPO}/dispatches',
+            data=body,
+            headers={
+                'Authorization': f'Bearer {GITHUB_TOKEN}',
+                'Accept': 'application/vnd.github+json',
+                'Content-Type': 'application/json',
+                'X-GitHub-Api-Version': '2022-11-28',
+            },
+            method='POST',
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=10) as r:
+                print(f'[OK] dispatched {service}/{alertname} HTTP {r.status}', flush=True)
+                return True
+        except urllib.error.HTTPError as e:
+            print(f'[ERR] GitHub {e.code} for {service}: {e.read().decode(errors="replace")}', flush=True)
+        except Exception as e:
+            print(f'[ERR] {service}: {e}', flush=True)
+        return False
+
+    class Handler(BaseHTTPRequestHandler):
+        def do_GET(self):
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(b'{"status":"ok"}')
+
+        def do_POST(self):
+            try:
+                payload = json.loads(
+                    self.rfile.read(int(self.headers.get('Content-Length', 0)))
+                )
+            except Exception:
+                self.send_response(400)
+                self.end_headers()
+                return
+            seen, triggered = set(), []
+            for alert in payload.get('alerts', []):
+                if alert.get('status') != 'firing':
+                    continue
+                labels = alert.get('labels', {})
+                alertname = labels.get('alertname', 'Unknown')
+                svc = extract_service(labels)
+                if not svc:
+                    print(f'[WARN] no service for {alertname} labels={labels}', flush=True)
+                    continue
+                if svc in seen:
+                    continue
+                seen.add(svc)
+                ok = dispatch(svc, alertname)
+                triggered.append({'service': svc, 'alert': alertname, 'dispatched': ok})
+            self.send_response(200)
+            self.send_header('Content-Type', 'application/json')
+            self.end_headers()
+            self.wfile.write(json.dumps({'triggered': triggered}).encode())
+
+        def log_message(self, fmt, *args):
+            print(f'[{self.address_string()}] {fmt % args}', flush=True)
+
+    if __name__ == '__main__':
+        server = HTTPServer(('0.0.0.0', PORT), Handler)
+        print(f'[START] self-healing-bridge :{PORT} repo={GITHUB_REPO}', flush=True)
+        server.serve_forever()
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: self-healing-bridge
+  namespace: monitoring
+  labels:
+    app: self-healing-bridge
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: self-healing-bridge
+  template:
+    metadata:
+      labels:
+        app: self-healing-bridge
+    spec:
+      containers:
+        - name: bridge
+          image: python:3.12-alpine
+          command: ["python3", "/app/bridge.py"]
+          ports:
+            - containerPort: 9095
+          env:
+            - name: GITHUB_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: self-healing-bridge-secret
+                  key: GITHUB_TOKEN
+            - name: GITHUB_REPO
+              value: "dsrdantas/TC4-TM"
+          volumeMounts:
+            - name: script
+              mountPath: /app
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 9095
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 9095
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 50m
+              memory: 64Mi
+      volumes:
+        - name: script
+          configMap:
+            name: self-healing-bridge
+            defaultMode: 0755
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: self-healing-bridge
+  namespace: monitoring
+spec:
+  selector:
+    app: self-healing-bridge
+  ports:
+    - port: 9095
+      targetPort: 9095
