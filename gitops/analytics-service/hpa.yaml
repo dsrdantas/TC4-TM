@@ -1,4 +1,4 @@
-git add .;git commit -m TC   apiVersion: autoscaling/v2
+apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: analytics-service-hpa
