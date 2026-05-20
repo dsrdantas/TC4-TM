@@ -198,6 +198,10 @@ cmd_generate_secrets() {
   echo ">>> Gerando secrets em $GITOPS_DIR ..."
   echo ""
 
+  # URL-encoda a senha para evitar que caracteres especiais (@, #, %, /) quebrem a URL de conexão
+  local DB_PASSWORD_ENCODED
+  DB_PASSWORD_ENCODED=$(python3 -c "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=''))" "$DB_PASSWORD")
+
   cat > "$GITOPS_DIR/auth-service/secret.yaml" <<EOF
 apiVersion: v1
 kind: Secret
@@ -208,7 +212,7 @@ type: Opaque
 stringData:
   POSTGRES_PASSWORD: "$DB_PASSWORD"
   MASTER_KEY: "$MASTER_KEY"
-  DATABASE_URL: "postgres://tm_user:${DB_PASSWORD}@${AUTH_DB_ENDPOINT}:5432/auth_db"
+  DATABASE_URL: "postgres://tm_user:${DB_PASSWORD_ENCODED}@${AUTH_DB_ENDPOINT}:5432/auth_db?sslmode=require"
 EOF
   echo "  [OK] gitops/auth-service/secret.yaml"
 
@@ -236,7 +240,7 @@ metadata:
 type: Opaque
 stringData:
   POSTGRES_PASSWORD: "$DB_PASSWORD"
-  DATABASE_URL: "postgres://tm_user:${DB_PASSWORD}@${FLAG_DB_ENDPOINT}:5432/flag_db"
+  DATABASE_URL: "postgres://tm_user:${DB_PASSWORD_ENCODED}@${FLAG_DB_ENDPOINT}:5432/flag_db?sslmode=require"
 EOF
   echo "  [OK] gitops/flag-service/secret.yaml"
 
@@ -264,7 +268,7 @@ metadata:
 type: Opaque
 stringData:
   POSTGRES_PASSWORD: "$DB_PASSWORD"
-  DATABASE_URL: "postgres://tm_user:${DB_PASSWORD}@${TARGETING_DB_ENDPOINT}:5432/targeting_db"
+  DATABASE_URL: "postgres://tm_user:${DB_PASSWORD_ENCODED}@${TARGETING_DB_ENDPOINT}:5432/targeting_db?sslmode=require"
 EOF
   echo "  [OK] gitops/targeting-service/secret.yaml"
 
@@ -958,7 +962,7 @@ cmd_setup_full() {
   git -C "$PROJECT_DIR" add gitops/*/deployment.yaml argocd/applications.yaml 2>/dev/null
   if ! git -C "$PROJECT_DIR" diff --cached --quiet 2>/dev/null; then
     git -C "$PROJECT_DIR" commit -m "Update manifests with AWS account $ACCOUNT_ID and GitHub user $GITHUB_USER" --quiet
-    git -C "$PROJECT_DIR" push --quiet 2>/dev/null || echo "    [AVISO] git push falhou — faca push manualmente antes do ArgoCD sync"
+    git -C "$PROJECT_DIR" push --quiet || echo "    [AVISO] git push falhou — faca push manualmente antes do ArgoCD sync"
     echo "    [OK] Manifestos commitados e enviados"
   else
     echo "    Manifestos ja estavam atualizados"
@@ -996,6 +1000,15 @@ cmd_setup_full() {
   echo ">>> [7/12] Aplicando ArgoCD Applications..."
   kubectl apply -f "$PROJECT_DIR/argocd/applications.yaml"
   echo "  [OK] Applications criadas"
+
+  # Garantia: ArgoCD pode sincronizar do git remoto antes do push propagar.
+  # Forcamos a imagem correta diretamente no cluster para eliminar a condicao de corrida.
+  echo "  Forcando imagens corretas no cluster (safety net)..."
+  for svc in auth-service flag-service targeting-service evaluation-service analytics-service; do
+    kubectl set image deployment/$svc $svc=${ECR_REGISTRY}/${svc}:latest \
+      -n togglemaster 2>/dev/null || true
+  done
+  echo "  [OK] Imagens atualizadas"
   echo ""
 
   # -------------------------------------------------------------------

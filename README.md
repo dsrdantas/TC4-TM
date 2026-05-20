@@ -2,7 +2,7 @@
 
 Observabilidade Total, APM, Alertas Inteligentes e Self-Healing para a plataforma de Feature Flags ToggleMaster.
 
-**Repositorio:** [github.com/rivachef/TC4-ToggleMaster](https://github.com/rivachef/TC4-ToggleMaster)
+**Repositorio:** [github.com/dsrdantas/TC4-TM](https://github.com/dsrdantas/TC4-TM)
 
 > **Projeto Evolutivo:** Este repositorio e a continuacao das Fases 1, 2 e 3.
 > A base completa (5 microsservicos, Terraform, CI/CD, GitOps) esta funcional
@@ -44,12 +44,8 @@ TC4-ToggleMaster/
 ├── .github/workflows/
 │   ├── ci-*-service.yaml           # Pipelines CI/CD (Fase 3)
 │   └── self-healing.yaml           # [FASE 4] Automacao de self-healing
-├── scripts/
-│   └── tc4-tm.sh                   # Script unificado com todos os comandos (flags --*)
-└── docs/
-    ├── ROTEIRO-COMPLETO.md         # Guia passo-a-passo
-    ├── RESUMO-EXECUTIVO.md         # Resumo executivo
-    └── PIPELINE-EXPLAINED.md       # Arquitetura de observabilidade
+└── scripts/
+    └── tc4-tm.sh                   # Script unificado com todos os comandos (flags --*)
 ```
 
 ---
@@ -66,22 +62,24 @@ TC4-ToggleMaster/
 └────┬───┴────┬───┴──────┬──────┴──────┬───────┴──────┬───────┘
      │        │          │             │              │
      └────────┴──────────┴──────┬──────┴──────────────┘
-                                │
+                                │  (traces + metricas + logs via OTLP)
                     ┌───────────▼───────────┐
                     │   OTel Collector      │
                     │   (Central Hub)       │
                     └───┬───────┬───────┬───┘
                         │       │       │
-              ┌─────────▼──┐ ┌─▼────┐ ┌▼──────────┐
-              │ Prometheus  │ │ Loki │ │ New Relic  │
-              │ (Metricas)  │ │(Logs)│ │  (Traces)  │
-              └──────┬──────┘ └──┬───┘ └─────┬─────┘
-                     │           │           │
-                     └─────┬─────┘           │
-                     ┌─────▼─────┐           │
-                     │  Grafana  │           │
-                     │(Dashboard)│    Service Map
-                     └─────┬─────┘  Distributed Tracing
+              ┌─────────▼──┐ ┌─▼────┐ ┌▼──────────────────┐
+              │ Prometheus  │ │ Loki │ │     New Relic      │
+              │ (Metricas)  │ │(Logs)│ │ Traces + Metricas  │
+              └──────┬──────┘ └──┬───┘ │ Logs + Service Map │
+                     │           │     └────────────────────┘
+                     └─────┬─────┘
+                     ┌─────▼─────┐
+                     │  Grafana  │
+                     │(Dashboard)│
+                     │admin/     │
+                     │tc4-tm     │
+                     └─────┬─────┘
                            │
                     ┌──────▼──────┐
                     │   Alertas   │
@@ -91,10 +89,14 @@ TC4-ToggleMaster/
                            │
               ┌────────────┼────────────┐
               │            │            │
-        ┌─────▼─────┐ ┌───▼───┐ ┌─────▼──────┐
-        │ OpsGenie  │ │Discord│ │GitHub Action│
-        │(Incidente)│ │(Chat) │ │(Self-Heal)  │
-        └───────────┘ └───────┘ └─────────────┘
+        ┌─────▼──────┐ ┌──▼────┐ ┌─────▼──────┐
+        │ PagerDuty  │ │Discord│ │GitHub Action│
+        │(Incidentes)│ │(Chat) │ │(Self-Heal)  │
+        └────────────┘ └───────┘ └─────────────┘
+
+  Roteamento Alertmanager:
+  - critical (ex: PodCrashLooping) → PagerDuty + Discord
+  - warning                        → Discord
 ```
 
 ---
@@ -105,13 +107,13 @@ TC4-ToggleMaster/
 |--------|-----------|--------|
 | Metricas | **Prometheus** (kube-prometheus-stack) | Armazenamento e consulta de metricas |
 | Logs | **Loki** + Promtail | Centralizacao de logs dos conteineres |
-| Visualizacao | **Grafana** | Dashboard customizado + alertas |
+| Visualizacao | **Grafana** (admin / tc4-tm) | Dashboard customizado + alertas |
 | Telemetria | **OpenTelemetry Collector** | Hub central: recebe, processa e exporta metricas/logs/traces |
-| APM | **New Relic** (OTLP) | Distributed tracing + Service Map |
-| Incidentes | **OpsGenie** | Gerenciamento de incidentes (P1 automatico) |
+| APM | **New Relic** (OTLP) | Distributed tracing + Service Map + Logs + Erros |
+| Incidentes | **PagerDuty** | Gerenciamento de incidentes P1 automatico via routing key |
 | ChatOps | **Discord** | Notificacoes de alertas e self-healing |
 | Self-Healing | **GitHub Actions** (repository_dispatch) | `kubectl rollout restart` automatico |
-| Instrumentacao (Go) | OTel SDK + HTTP middleware | Traces, metricas, propagacao de contexto |
+| Instrumentacao (Go) | OTel SDK + HTTP middleware | Traces, metricas, propagacao de contexto, DB spans |
 | Instrumentacao (Python) | OTel auto-instrumentation | Flask, requests, psycopg2, botocore |
 
 ---
@@ -130,7 +132,7 @@ TC4-ToggleMaster/
 
 **Contas externas necessarias:**
 - [New Relic](https://newrelic.com/signup) - conta gratuita (100 GB/mes)
-- [OpsGenie](https://www.atlassian.com/software/opsgenie/pricing) - free tier (5 usuarios)
+- [PagerDuty](https://www.pagerduty.com/sign-up/) - free trial (14 dias) ou developer plan
 - Discord - servidor com webhook configurado
 
 ---
@@ -175,9 +177,17 @@ cp gitops/monitoring/newrelic-secret.yaml.example gitops/monitoring/newrelic-sec
 # Editar com sua license key
 kubectl apply -f gitops/monitoring/newrelic-secret.yaml
 
-# OpsGenie + Discord (Alertmanager)
-# Editar gitops/monitoring/alerting/alertmanager-config.yaml com suas chaves
+# PagerDuty + Discord (Alertmanager)
+# Editar gitops/monitoring/alerting/alertmanager-secret.yaml com suas chaves:
+#   pagerduty_routing_key: <sua routing key do PagerDuty>
+#   discord_webhook_url:   <seu webhook Discord>
+kubectl apply -f gitops/monitoring/alerting/alertmanager-secret.yaml
 ```
+
+**Como obter a PagerDuty Routing Key:**
+1. PagerDuty > Services > seu servico > Integrations > Add Integration
+2. Escolha "Events API v2"
+3. Copie a **Integration Key** (essa e a routing key)
 
 ### 4. Configurar GitHub Secrets (para self-healing)
 No GitHub: Settings > Secrets and variables > Actions:
@@ -198,9 +208,14 @@ kubectl get pods -n togglemaster
 # Pods do monitoring
 kubectl get pods -n monitoring
 
-# Acessar Grafana
-kubectl get svc prometheus-grafana -n monitoring
-# User: admin / Pass: togglemaster2024
+# Acessar Grafana (port-forward se nao tiver ingress)
+kubectl port-forward svc/prometheus-grafana 3000:80 -n monitoring
+# Abrir http://localhost:3000
+# Usuario: admin
+# Senha:   tc4-tm
+
+# Acessar New Relic APM
+# https://one.newrelic.com > APM & Services > togglemaster-*
 ```
 
 ---
@@ -208,11 +223,11 @@ kubectl get svc prometheus-grafana -n monitoring
 ## Testar o Fluxo de Incidente (Demo)
 
 ```bash
-# 1. Injetar falha (escala servico para 0)
-./scripts/self-healing/inject-fault.sh auth-service
+# 1. Injetar falha (escala servico para 0 replicas)
+./scripts/tc4-tm.sh --inject-fault
 
-# 2. Observar no Grafana: alerta dispara (~2-5 min)
-# 3. OpsGenie: incidente P1 criado automaticamente
+# 2. Observar no Grafana: alerta PodCrashLooping dispara (~2-5 min)
+# 3. PagerDuty: incidente criado automaticamente
 # 4. Discord: notificacao recebida
 # 5. GitHub Actions: self-healing executa rollout restart
 # 6. Servico restaurado automaticamente
@@ -320,8 +335,51 @@ Os servicos Go (auth-service, evaluation-service) permanecem na porta 4317 pois 
 
 ---
 
-## Documentacao
+### 11. New Relic — databases, logs e erros nao apareciam
 
-- [Roteiro Completo](docs/ROTEIRO-COMPLETO.md) - Passo a passo detalhado do setup
-- [Resumo Executivo](docs/RESUMO-EXECUTIVO.md) - Visao geral e conformidade com requisitos
-- [Arquitetura de Observabilidade](docs/PIPELINE-EXPLAINED.md) - Como funciona o pipeline de telemetria
+**Problema:** O New Relic nao exibia: (a) chamadas ao banco de dados nos traces; (b) logs dos microsservicos; (c) erros sinalizados nas respostas HTTP.
+
+**Causas e correcoes:**
+
+**(a) Banco de dados invisivel nos traces (servicos Go):**
+A biblioteca `otelsql` foi avaliada mas descartada porque sua versao `@latest` puxava dependencias incompativeis com Go 1.24 (`otelsql → otel v1.42 → golang.org/x/sys v0.40+`). Solucao: spans de banco de dados criados manualmente com `otel.Tracer("auth-service").Start(ctx, "db.api_keys.select", trace.WithSpanKind(trace.SpanKindClient))` e atributos `db.system`, `db.operation`, `db.sql.table` em `microservices/auth-service/handlers.go`.
+
+**(b) Logs nao apareciam no New Relic:**
+O pipeline `logs` do OTel Collector exportava apenas para o Loki (`otlphttp/loki`). Correcao: adicionado `otlphttp/newrelic` como exporter adicional no pipeline de logs em `gitops/monitoring/otel-collector/values.yaml`.
+
+**(c) Erros nao rastreados:**
+Os handlers Go nao chamavam `span.RecordError(err)` + `span.SetStatus(codes.Error, msg)`, entao o New Relic nao contabilizava as falhas. Correcao: todos os caminhos de erro em `microservices/auth-service/handlers.go` e `microservices/evaluation-service/handlers.go` agora registram o erro no span ativo.
+
+---
+
+### 12. flake8 — violacoes nos microsservicos Python
+
+**Problema:** Os tres microsservicos Python falhavam no CI com 44+ violacoes flake8: `E302` (linhas em branco insuficientes antes de funcoes), `W291`/`W293` (espacos em branco no final de linhas), `E701` (multiplas instrucoes na mesma linha), `F401` (importacao nao utilizada), `W292` (sem newline no final do arquivo).
+
+**Correcao:** Reescrita completa dos tres arquivos:
+- `microservices/flag-service/app.py` — 44 violacoes corrigidas
+- `microservices/targeting-service/app.py` — removido tambem `import json` nao utilizado (a serializacao e feita pelo `Json` do psycopg2)
+- `microservices/analytics-service/app.py` — espacos em branco e ausencia de linhas em branco corrigidos
+
+---
+
+### 13. auth-service — pod nao conectava ao RDS
+
+**Problema:** O pod do auth-service inicializava mas falhava ao conectar ao banco RDS com erro de autenticacao/SSL. Duas causas:
+1. `DATABASE_URL` nao incluia `?sslmode=require`, obrigatorio para conexoes RDS com pgx/lib-pq.
+2. A senha do banco continha caracteres especiais que nao eram URL-encoded, corrompendo a connection string.
+
+**Correcao em `scripts/tc4-tm.sh`:**
+```bash
+# URL-encoding da senha antes de montar a DATABASE_URL
+DB_PASSWORD_ENCODED=$(python3 -c \
+  "import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=''))" \
+  "$DB_PASSWORD")
+
+# sslmode=require adicionado em todas as tres URLs
+DATABASE_URL: "postgres://tm_user:${DB_PASSWORD_ENCODED}@${AUTH_DB_ENDPOINT}:5432/auth_db?sslmode=require"
+```
+
+O arquivo `gitops/auth-service/secret.yaml.example` tambem foi atualizado para refletir o formato correto com `?sslmode=require`.
+
+**Causa raiz de infraestrutura:** Os managed node groups do EKS usam o security group auto-criado (`cluster_security_group_id`), nao o SG customizado `eks_nodes`. O Terraform ja havia sido corrigido em fase anterior com `aws_security_group_rule` referenciando `module.eks.cluster_security_group_id` para permitir acesso dos nodes ao RDS e ao Redis.
