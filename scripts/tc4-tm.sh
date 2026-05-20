@@ -842,6 +842,14 @@ cmd_terraform_apply() {
 # --setup-full
 ###############################################################################
 cmd_setup_full() {
+  # Se ainda nao estamos dentro de uma sessao com log, re-lanca com tee
+  if [ -z "${TC4_LOGGING:-}" ]; then
+    local LOG_FILE="$PROJECT_DIR/tc4-tm-setup-$(date +%Y%m%d-%H%M%S).log"
+    echo "Logging to: $LOG_FILE"
+    export TC4_LOGGING=1
+    exec > >(tee -a "$LOG_FILE") 2>&1
+  fi
+
   echo "============================================"
   echo "  ToggleMaster - Setup Completo"
   echo "============================================"

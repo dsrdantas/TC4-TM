@@ -137,6 +137,104 @@ TC4-ToggleMaster/
 
 ---
 
+## Configuracao de Secrets e Variaveis
+
+### GitHub — Secrets (Settings > Secrets and variables > Actions)
+
+Todos os workflows de CI/CD e o self-healing dependem destes secrets:
+
+| Secret | Exemplo | Usado em | Como obter |
+|--------|---------|----------|------------|
+| `AWS_ACCESS_KEY_ID` | `ASIA...` | CI (build/push ECR), Self-Healing (kubectl) | AWS Academy > AWS Details > Credentials |
+| `AWS_SECRET_ACCESS_KEY` | `wJalr...` | CI, Self-Healing | Idem |
+| `AWS_SESSION_TOKEN` | `IQoJb3J...` | CI, Self-Healing | Idem — **expira a cada ~4h no AWS Academy** |
+| `ECR_REGISTRY` | `774736517772.dkr.ecr.us-east-1.amazonaws.com` | CI (todos os 5 pipelines) | `aws sts get-caller-identity --query Account` |
+| `DISCORD_WEBHOOK_URL` | `https://discord.com/api/webhooks/ID/TOKEN` | Self-Healing workflow | Discord > Server Settings > Integrations > Webhooks — **sem o sufixo `/slack`** |
+| `GITHUB_TOKEN` | (automatico) | CI (commit de manifests) | Fornecido automaticamente pelo GitHub Actions — nao precisa criar |
+
+> **Atencao AWS Academy:** As credenciais AWS expiram a cada ~4 horas. Atualize os 3 secrets AWS e execute `./scripts/tc4-tm.sh --update-aws-credentials` para sincronizar o cluster.
+
+---
+
+### `gitops/monitoring/alerting/alertmanager-secret.yaml`
+
+Este arquivo **nao deve ser commitado** com valores reais. Edite antes de aplicar:
+
+```yaml
+receivers:
+  - name: 'togglemaster-critical'
+    pagerduty_configs:
+      - routing_key: '<PAGERDUTY_ROUTING_KEY>'   # <-- substituir
+        ...
+    slack_configs:
+      - api_url: '<DISCORD_WEBHOOK_URL>/slack'   # <-- substituir (com /slack para Alertmanager)
+        ...
+
+  - name: 'togglemaster-warning'
+    slack_configs:
+      - api_url: '<DISCORD_WEBHOOK_URL>/slack'   # <-- substituir
+
+  - name: 'togglemaster-default'
+    slack_configs:
+      - api_url: '<DISCORD_WEBHOOK_URL>/slack'   # <-- substituir
+```
+
+| Campo | Como obter |
+|-------|------------|
+| `routing_key` (PagerDuty) | PagerDuty > Services > seu servico > Integrations > Add Integration > Events API v2 > copiar **Integration Key** |
+| `api_url` (Discord) | Discord > Server Settings > Integrations > Webhooks > copiar URL e adicionar `/slack` no final |
+
+Aplicar apos editar:
+```bash
+kubectl apply -f gitops/monitoring/alerting/alertmanager-secret.yaml
+```
+
+---
+
+### `gitops/monitoring/newrelic-secret.yaml`
+
+Este arquivo **nao deve ser commitado** com o valor real. Crie a partir do exemplo:
+
+```bash
+cp gitops/monitoring/newrelic-secret.yaml.example gitops/monitoring/newrelic-secret.yaml
+```
+
+Edite o campo:
+```yaml
+stringData:
+  license-key: "<NEW_RELIC_LICENSE_KEY>"   # <-- substituir
+```
+
+| Campo | Como obter |
+|-------|------------|
+| `license-key` | New Relic > Profile (canto inferior esquerdo) > API Keys > tipo **INGEST - LICENSE** > copiar |
+
+Aplicar apos editar:
+```bash
+kubectl apply -f gitops/monitoring/newrelic-secret.yaml
+```
+
+---
+
+### `terraform/terraform.tfvars`
+
+Crie a partir do exemplo antes de rodar o Terraform:
+
+```bash
+cp terraform/terraform.tfvars.example terraform/terraform.tfvars
+```
+
+| Campo | Exemplo | Descricao |
+|-------|---------|-----------|
+| `aws_region` | `us-east-1` | Regiao AWS onde os recursos serao criados |
+| `project_name` | `togglemaster` | Prefixo usado em todos os recursos AWS |
+| `lab_role_arn` | `arn:aws:iam::774736517772:role/LabRole` | ARN da role IAM — AWS Academy > AWS Details |
+| `db_password` | `MinhaS3nha@Forte!` | Senha do PostgreSQL — use caracteres especiais, sera URL-encoded automaticamente |
+
+> **Importante:** `db_password` pode conter caracteres especiais. O script `--generate-secrets` faz o URL-encoding automaticamente antes de montar a `DATABASE_URL`.
+
+---
+
 ## Guia Rapido - Setup Completo
 
 ### 1. Configurar credenciais AWS + Terraform (Fase 3)
