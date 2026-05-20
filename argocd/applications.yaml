@@ -9,7 +9,7 @@ metadata:
 spec:
   description: ToggleMaster Feature Flag Platform
   sourceRepos:
-    - 'https://github.com/dsrdantas/TC4-TM.git'
+    - 'https://github.com/<GITHUB_USER>/TC4-TM.git'
   destinations:
     - namespace: togglemaster
       server: https://kubernetes.default.svc
@@ -42,7 +42,7 @@ metadata:
 spec:
   project: togglemaster
   source:
-    repoURL: https://github.com/dsrdantas/TC4-TM.git
+    repoURL: https://github.com/<GITHUB_USER>/TC4-TM.git
     targetRevision: main
     path: gitops/auth-service
     directory:
@@ -70,7 +70,7 @@ metadata:
 spec:
   project: togglemaster
   source:
-    repoURL: https://github.com/dsrdantas/TC4-TM.git
+    repoURL: https://github.com/<GITHUB_USER>/TC4-TM.git
     targetRevision: main
     path: gitops/flag-service
     directory:
@@ -98,7 +98,7 @@ metadata:
 spec:
   project: togglemaster
   source:
-    repoURL: https://github.com/dsrdantas/TC4-TM.git
+    repoURL: https://github.com/<GITHUB_USER>/TC4-TM.git
     targetRevision: main
     path: gitops/targeting-service
     directory:
@@ -126,7 +126,7 @@ metadata:
 spec:
   project: togglemaster
   source:
-    repoURL: https://github.com/dsrdantas/TC4-TM.git
+    repoURL: https://github.com/<GITHUB_USER>/TC4-TM.git
     targetRevision: main
     path: gitops/evaluation-service
   destination:
@@ -152,7 +152,7 @@ metadata:
 spec:
   project: togglemaster
   source:
-    repoURL: https://github.com/dsrdantas/TC4-TM.git
+    repoURL: https://github.com/<GITHUB_USER>/TC4-TM.git
     targetRevision: main
     path: gitops/analytics-service
   destination:
@@ -178,7 +178,7 @@ metadata:
 spec:
   project: togglemaster
   source:
-    repoURL: https://github.com/dsrdantas/TC4-TM.git
+    repoURL: https://github.com/<GITHUB_USER>/TC4-TM.git
     targetRevision: main
     path: gitops
     directory:
@@ -206,7 +206,7 @@ metadata:
 spec:
   project: togglemaster
   source:
-    repoURL: https://github.com/dsrdantas/TC4-TM.git
+    repoURL: https://github.com/<GITHUB_USER>/TC4-TM.git
     targetRevision: main
     path: gitops/monitoring
     directory:
