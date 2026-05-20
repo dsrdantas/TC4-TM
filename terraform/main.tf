@@ -55,27 +55,3 @@ module "ecr" {
   tags = var.tags
 }
 
-############################
-# SG Rules: EKS cluster SG -> RDS/Redis
-# (EKS cria um SG proprio que os nodes usam,
-#  precisamos permitir esse SG nos SGs de RDS e Redis)
-############################
-resource "aws_security_group_rule" "rds_from_eks_cluster_sg" {
-  type                     = "ingress"
-  from_port                = 5432
-  to_port                  = 5432
-  protocol                 = "tcp"
-  source_security_group_id = module.eks.cluster_security_group_id
-  security_group_id        = module.networking.rds_sg_id
-  description              = "PostgreSQL from EKS cluster SG"
-}
-
-resource "aws_security_group_rule" "redis_from_eks_cluster_sg" {
-  type                     = "ingress"
-  from_port                = 6379
-  to_port                  = 6379
-  protocol                 = "tcp"
-  source_security_group_id = module.eks.cluster_security_group_id
-  security_group_id        = module.networking.redis_sg_id
-  description              = "Redis from EKS cluster SG"
-}

@@ -565,16 +565,28 @@ cmd_install_monitoring() {
   fi
 
   echo "Loading ToggleMaster Grafana dashboard..."
-  echo "  Waiting for Grafana to be ready..."
-  kubectl rollout status deployment/prometheus-grafana -n monitoring --timeout=120s >/dev/null 2>&1
+  echo "  Waiting for Grafana to be ready (up to 5 min)..."
+  kubectl rollout status deployment/prometheus-grafana -n monitoring --timeout=300s || true
 
-  local GRAFANA_POD
-  GRAFANA_POD=$(kubectl get pods -n monitoring -l app.kubernetes.io/name=grafana -o jsonpath='{.items[0].metadata.name}')
+  local GRAFANA_POD=""
+  for i in $(seq 1 18); do
+    GRAFANA_POD=$(kubectl get pods -n monitoring -l app.kubernetes.io/name=grafana \
+      --field-selector=status.phase=Running -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+    [ -n "$GRAFANA_POD" ] && break
+    echo "  Grafana pod not ready yet... (${i}/18)"
+    sleep 10
+  done
+
+  if [ -z "$GRAFANA_POD" ]; then
+    echo "  [AVISO] Grafana pod nao encontrado apos 3 min — dashboard nao carregado."
+    echo "    Execute manualmente: kubectl apply -f gitops/monitoring/grafana/dashboard-configmap.yaml"
+    return 0
+  fi
 
   local LOKI_UID=""
   for i in $(seq 1 12); do
     LOKI_UID=$(kubectl exec -n monitoring "$GRAFANA_POD" -c grafana -- \
-      curl -sf http://localhost:3000/api/datasources -u admin:togglemaster2024 2>/dev/null | \
+      curl -sf http://localhost:3000/api/datasources -u admin:tc4-tm 2>/dev/null | \
       python3 -c "import sys,json; ds=json.load(sys.stdin); print(next((d['uid'] for d in ds if d['type']=='loki'),''))" 2>/dev/null)
     [ -n "$LOKI_UID" ] && break
     echo "  Waiting for Loki datasource... (${i}/12)"
@@ -608,7 +620,7 @@ cmd_install_monitoring() {
   echo "Grafana:"
   echo "  URL:      kubectl get svc prometheus-grafana -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'"
   echo "  User:     admin"
-  echo "  Password: togglemaster2024"
+  echo "  Password: tc4-tm"
   echo ""
   echo "Prometheus:"
   echo "  Internal: http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090"
@@ -1082,7 +1094,7 @@ cmd_setup_full() {
   echo "Grafana (Monitoring):"
   echo "  URL:   http://$GRAFANA_URL"
   echo "  User:  admin"
-  echo "  Pass:  togglemaster2024"
+  echo "  Pass:  tc4-tm"
   echo ""
   echo "OTel Collector:"
   echo "  gRPC: otel-collector-opentelemetry-collector.monitoring.svc.cluster.local:4317"
