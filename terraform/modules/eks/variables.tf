@@ -6,7 +6,7 @@ variable "project_name" {
 variable "cluster_version" {
   description = "Versao do Kubernetes"
   type        = string
-  default     = "1.31"
+  default     = "1.33"
 }
 
 variable "subnet_ids" {

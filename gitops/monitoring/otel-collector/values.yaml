@@ -112,11 +112,11 @@ config:
         processors: [memory_limiter, resource, batch]
         exporters: [prometheusremotewrite, otlphttp/newrelic, debug]
 
-      # Logs pipeline: apps -> OTel -> Loki
+      # Logs pipeline: apps -> OTel -> Loki + New Relic
       logs:
         receivers: [otlp]
         processors: [memory_limiter, resource, batch]
-        exporters: [otlphttp/loki, debug]
+        exporters: [otlphttp/loki, otlphttp/newrelic, debug]
 
     telemetry:
       metrics:

@@ -1,27 +1,27 @@
 package main
 
 import (
-	// "crypto/sha256"
-	// "encoding/hex"
 	"encoding/json"
 	"log"
 	"net/http"
 	"strings"
+
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
+	"go.opentelemetry.io/otel/trace"
 )
 
-// Estrutura para o corpo da requisição de criação de chave
 type CreateKeyRequest struct {
 	Name string `json:"name"`
 }
 
-// Estrutura para a resposta da criação de chave
 type CreateKeyResponse struct {
 	Name    string `json:"name"`
-	Key     string `json:"key"` // A chave em texto plano é retornada APENAS uma vez
+	Key     string `json:"key"`
 	Message string `json:"message"`
 }
 
-// healthHandler é um simples endpoint de verificação de saúde
 func (a *App) healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok", "version": "1.1.0"}); err != nil {
@@ -29,9 +29,7 @@ func (a *App) healthHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// validateKeyHandler verifica se uma chave de API (enviada via Header) é válida
 func (a *App) validateKeyHandler(w http.ResponseWriter, r *http.Request) {
-	// Extrai a chave do header "Authorization: Bearer <key>"
 	authHeader := r.Header.Get("Authorization")
 	keyString := strings.TrimPrefix(authHeader, "Bearer ")
 
@@ -40,27 +38,34 @@ func (a *App) validateKeyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Calcula o hash da chave recebida
 	keyHash := hashAPIKey(keyString)
 
-	// Verifica se o hash existe no banco de dados
+	ctx, dbSpan := otel.Tracer("auth-service").Start(r.Context(), "db.api_keys.select",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(
+			attribute.String("db.system", "postgresql"),
+			attribute.String("db.operation", "SELECT"),
+			attribute.String("db.sql.table", "api_keys"),
+		),
+	)
+	defer dbSpan.End()
+
 	var id int
-	err := a.DB.QueryRow("SELECT id FROM api_keys WHERE key_hash = $1 AND is_active = true", keyHash).Scan(&id)
+	err := a.DB.QueryRowContext(ctx, "SELECT id FROM api_keys WHERE key_hash = $1 AND is_active = true", keyHash).Scan(&id)
 	if err != nil {
-		// Se não encontrar (sql.ErrNoRows), ou qualquer outro erro, a chave é inválida
+		dbSpan.RecordError(err)
+		dbSpan.SetStatus(codes.Error, "key validation failed")
 		log.Printf("Falha na validação da chave (hash: %s...): %v", keyHash[:6], err)
 		http.Error(w, "Chave de API inválida ou inativa", http.StatusUnauthorized)
 		return
 	}
 
-	// Chave válida
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(map[string]string{"message": "Chave válida"}); err != nil {
 		log.Printf("Erro ao codificar resposta de validação: %v", err)
 	}
 }
 
-// createKeyHandler cria uma nova chave de API
 func (a *App) createKeyHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Método não permitido", http.StatusMethodNotAllowed)
@@ -78,22 +83,35 @@ func (a *App) createKeyHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Gera uma nova chave e seu hash
 	newKey, err := generateAPIKey()
 	if err != nil {
+		span := trace.SpanFromContext(r.Context())
+		span.RecordError(err)
+		span.SetStatus(codes.Error, "failed to generate api key")
 		http.Error(w, "Erro ao gerar a chave", http.StatusInternalServerError)
 		return
 	}
 	newKeyHash := hashAPIKey(newKey)
 
-	// Salva o hash no banco de dados
+	ctx, dbSpan := otel.Tracer("auth-service").Start(r.Context(), "db.api_keys.insert",
+		trace.WithSpanKind(trace.SpanKindClient),
+		trace.WithAttributes(
+			attribute.String("db.system", "postgresql"),
+			attribute.String("db.operation", "INSERT"),
+			attribute.String("db.sql.table", "api_keys"),
+		),
+	)
+	defer dbSpan.End()
+
 	var newID int
-	err = a.DB.QueryRow(
+	err = a.DB.QueryRowContext(ctx,
 		"INSERT INTO api_keys (name, key_hash) VALUES ($1, $2) RETURNING id",
 		req.Name, newKeyHash,
 	).Scan(&newID)
 
 	if err != nil {
+		dbSpan.RecordError(err)
+		dbSpan.SetStatus(codes.Error, "failed to insert api key")
 		log.Printf("Erro ao salvar a chave no banco: %v", err)
 		http.Error(w, "Erro ao salvar a chave", http.StatusInternalServerError)
 		return
@@ -103,26 +121,24 @@ func (a *App) createKeyHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	if err := json.NewEncoder(w).Encode(CreateKeyResponse{
 		Name:    req.Name,
-		Key:     newKey, // Retorna a chave em texto plano pela última vez
+		Key:     newKey,
 		Message: "Guarde esta chave com segurança! Você não poderá vê-la novamente.",
 	}); err != nil {
 		log.Printf("Erro ao codificar resposta de criação: %v", err)
 	}
 }
 
-// --- Middleware ---
-
-// masterKeyAuthMiddleware protege endpoints que só podem ser acessados com a MASTER_KEY
 func (a *App) masterKeyAuthMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHeader := r.Header.Get("Authorization")
 		keyString := strings.TrimPrefix(authHeader, "Bearer ")
 
 		if keyString != a.MasterKey {
+			span := trace.SpanFromContext(r.Context())
+			span.SetStatus(codes.Error, "unauthorized master key")
 			http.Error(w, "Acesso não autorizado", http.StatusForbidden)
 			return
 		}
-		// Se a chave for válida, continua para o handler principal
 		next.ServeHTTP(w, r)
 	})
 }

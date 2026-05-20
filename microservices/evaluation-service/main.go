@@ -12,6 +12,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/service/sqs"
 	"github.com/go-redis/redis/v8"
+	"github.com/go-redis/redis/extra/redisotel/v8"
 	"github.com/joho/godotenv"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
@@ -80,6 +81,7 @@ func main() {
 		log.Fatalf("Não foi possível conectar ao Redis (timeout 10s): %v", err)
 	}
 	log.Println("Conectado ao Redis com sucesso!")
+	rdb.AddHook(redisotel.NewTracingHook())
 
 	// Cliente SQS (AWS SDK)
 	var sqsSvc *sqs.SQS
