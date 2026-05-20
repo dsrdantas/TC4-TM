@@ -131,11 +131,13 @@ jobs:
           fi
 
           # Only send if webhook is configured
-          if [ -n "$DISCORD_WEBHOOK" ]; then
+          # Strip /slack suffix if present — the standard Discord endpoint is required for embeds
+          DISCORD_URL="${DISCORD_WEBHOOK%/slack}"
+          if [ -n "$DISCORD_URL" ]; then
             curl -s -H "Content-Type: application/json" \
               -d "{
                 \"embeds\": [{
-                  \"title\": \":robot: Self-Healing ${STATUS}\",
+                  \"title\": \"🤖 Self-Healing ${STATUS}\",
                   \"description\": \"Automated remediation for alert **${{ steps.target.outputs.alert }}**\",
                   \"color\": ${COLOR},
                   \"fields\": [
@@ -149,7 +151,7 @@ jobs:
                   \"footer\": {\"text\": \"ToggleMaster Self-Healing | Phase 4\"}
                 }]
               }" \
-              "$DISCORD_WEBHOOK"
+              "$DISCORD_URL"
             echo "Discord notification sent."
           else
             echo "DISCORD_WEBHOOK_URL not configured. Skipping notification."

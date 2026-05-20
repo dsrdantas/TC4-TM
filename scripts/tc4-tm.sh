@@ -1479,10 +1479,48 @@ cmd_test_self_healing() {
   echo ""
 
   echo "Triggering repository_dispatch event..."
-  gh api "repos/$REPO/dispatches" \
-    -f event_type=self-healing \
-    -f "client_payload[service]=$SERVICE" \
-    -f "client_payload[alert]=TestAlert-ManualTrigger"
+
+  if command -v gh &>/dev/null; then
+    gh api "repos/$REPO/dispatches" \
+      -f event_type=self-healing \
+      -f "client_payload[service]=$SERVICE" \
+      -f "client_payload[alert]=TestAlert-ManualTrigger"
+  else
+    echo "  [INFO] gh CLI nao encontrado — usando curl direto."
+    echo ""
+
+    local GITHUB_TOKEN="${GITHUB_TOKEN:-${GH_TOKEN:-}}"
+    if [ -z "$GITHUB_TOKEN" ]; then
+      echo "ERRO: gh CLI nao instalado e GITHUB_TOKEN nao definido."
+      echo ""
+      echo "Opcoes:"
+      echo "  1) Instalar gh CLI:  brew install gh && gh auth login"
+      echo "  2) Exportar token:   export GITHUB_TOKEN=ghp_..."
+      echo "     Depois re-executar: ./scripts/tc4-tm.sh --test-self-healing $SERVICE"
+      echo ""
+      echo "Ou disparar manualmente via GitHub:"
+      echo "  https://github.com/$REPO/actions/workflows/self-healing.yaml"
+      echo "  (Actions > Self-Healing > Run workflow)"
+      exit 1
+    fi
+
+    local HTTP_STATUS
+    HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+      -X POST \
+      -H "Accept: application/vnd.github+json" \
+      -H "Authorization: Bearer $GITHUB_TOKEN" \
+      -H "X-GitHub-Api-Version: 2022-11-28" \
+      "https://api.github.com/repos/$REPO/dispatches" \
+      -d "{\"event_type\":\"self-healing\",\"client_payload\":{\"service\":\"$SERVICE\",\"alert\":\"TestAlert-ManualTrigger\"}}")
+
+    if [ "$HTTP_STATUS" = "204" ]; then
+      echo "  [OK] Dispatch enviado (HTTP 204)"
+    else
+      echo "ERRO: GitHub API retornou HTTP $HTTP_STATUS"
+      echo "Verifique se o GITHUB_TOKEN tem permissao 'repo' ou 'workflow'."
+      exit 1
+    fi
+  fi
 
   echo ""
   echo "Dispatch event sent successfully!"
@@ -1490,7 +1528,7 @@ cmd_test_self_healing() {
   echo "Monitor the workflow at:"
   echo "  https://github.com/$REPO/actions/workflows/self-healing.yaml"
   echo ""
-  echo "Or via CLI:"
+  echo "Or via CLI (se gh instalado):"
   echo "  gh run list --workflow=self-healing.yaml --repo=$REPO"
 }
 
