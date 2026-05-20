@@ -8,7 +8,7 @@
 grafana:
   enabled: true
   adminUser: admin
-  adminPassword: togglemaster2024
+  adminPassword: tc4-tm
 
   service:
     type: LoadBalancer
