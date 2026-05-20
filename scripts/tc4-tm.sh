@@ -1467,7 +1467,7 @@ cmd_inject_fault() {
 ###############################################################################
 cmd_test_self_healing() {
   local SERVICE="${1:-auth-service}"
-  local REPO="rivachef/TC4-ToggleMaster"
+  local REPO="dsrdantas/TC4-TM"
 
   echo "============================================"
   echo "  Self-Healing Test Trigger"
