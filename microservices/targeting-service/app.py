@@ -61,7 +61,17 @@ def require_auth(f):
 
 @app.route('/health')
 def health():
-    return jsonify({"status": "ok"})
+    conn = None
+    try:
+        conn = pool.getconn()
+        conn.cursor().execute("SELECT 1")
+        return jsonify({"status": "ok"})
+    except Exception as e:
+        log.error(f"[health] DB unreachable: {e}")
+        return jsonify({"status": "unhealthy", "reason": "db_unreachable"}), 503
+    finally:
+        if conn:
+            pool.putconn(conn)
 
 
 @app.route('/rules', methods=['POST'])

@@ -53,14 +53,14 @@ spec:
       rules:
         - alert: PodCrashLooping
           expr: |
-            increase(kube_pod_container_status_restarts_total{namespace="togglemaster"}[15m]) > 3
-          for: 5m
+            kube_pod_container_status_waiting_reason{namespace="togglemaster", reason="CrashLoopBackOff"} == 1
+          for: 2m
           labels:
             severity: warning
             team: togglemaster
           annotations:
             summary: "Pod {{ $labels.pod }} is crash-looping"
-            description: "Pod {{ $labels.pod }} in namespace {{ $labels.namespace }} has restarted {{ $value }} times in the last 15 minutes."
+            description: "Pod {{ $labels.pod }} (container: {{ $labels.container }}) in namespace {{ $labels.namespace }} has been in CrashLoopBackOff for more than 2 minutes."
 
         - alert: PodNotReady
           expr: |

@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -23,6 +25,18 @@ type CreateKeyResponse struct {
 }
 
 func (a *App) healthHandler(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+	defer cancel()
+
+	if err := a.DB.PingContext(ctx); err != nil {
+		log.Printf("[health] DB unreachable: %v", err)
+		w.WriteHeader(http.StatusServiceUnavailable)
+		if encErr := json.NewEncoder(w).Encode(map[string]string{"status": "unhealthy", "reason": "db_unreachable"}); encErr != nil {
+			log.Printf("Erro ao codificar resposta de health: %v", encErr)
+		}
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok", "version": "1.1.0"}); err != nil {
 		log.Printf("Erro ao codificar resposta de health: %v", err)

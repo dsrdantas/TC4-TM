@@ -1,9 +1,11 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
@@ -17,6 +19,19 @@ type EvaluationResponse struct {
 
 func (a *App) healthHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+
+	ctx, cancel := context.WithTimeout(r.Context(), 3*time.Second)
+	defer cancel()
+
+	if _, err := a.RedisClient.Ping(ctx).Result(); err != nil {
+		log.Printf("[health] Redis unreachable: %v", err)
+		w.WriteHeader(http.StatusServiceUnavailable)
+		if encErr := json.NewEncoder(w).Encode(map[string]string{"status": "unhealthy", "reason": "redis_unreachable"}); encErr != nil {
+			log.Printf("Erro ao codificar resposta de health: %v", encErr)
+		}
+		return
+	}
+
 	w.WriteHeader(http.StatusOK)
 	if err := json.NewEncoder(w).Encode(map[string]string{"status": "ok"}); err != nil {
 		log.Printf("Erro ao codificar resposta de health: %v", err)
