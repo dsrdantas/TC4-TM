@@ -383,3 +383,76 @@ DATABASE_URL: "postgres://tm_user:${DB_PASSWORD_ENCODED}@${AUTH_DB_ENDPOINT}:543
 O arquivo `gitops/auth-service/secret.yaml.example` tambem foi atualizado para refletir o formato correto com `?sslmode=require`.
 
 **Causa raiz de infraestrutura:** Os managed node groups do EKS usam o security group auto-criado (`cluster_security_group_id`), nao o SG customizado `eks_nodes`. O Terraform ja havia sido corrigido em fase anterior com `aws_security_group_rule` referenciando `module.eks.cluster_security_group_id` para permitir acesso dos nodes ao RDS e ao Redis.
+
+---
+
+### 14. Terraform — Security Group do RDS/Redis nao liberava acesso dos nodes EKS
+
+**Problema:** Pods em CrashLoopBackOff com `dial tcp 10.0.11.x:5432: i/o timeout`. O modulo de networking definia regras inline (`security_groups = [eks_nodes.id]`) nos SGs do RDS e Redis, mas os managed node groups do EKS usam o `cluster_security_group_id` auto-criado — nao o SG customizado `eks_nodes`. Alem disso, a adicao de `aws_security_group_rule` externo no `main.tf` conflitava com as regras inline: o Terraform AWS provider proibe misturar inline rules com `aws_security_group_rule` no mesmo SG (uma sobrescreve a outra a cada apply).
+
+**Correcao em `terraform/modules/networking/main.tf`:**
+Adicionado bloco `ingress` com `cidr_blocks = var.private_subnet_cidrs` (10.0.11.0/24 e 10.0.22.0/24) diretamente nos SGs do RDS (porta 5432) e Redis (porta 6379). Abordagem CIDR e mais robusta pois independe de qual SG o EKS auto-cria. Os `aws_security_group_rule` conflitantes foram removidos do `main.tf`.
+
+---
+
+### 15. --setup-full — deployments aplicados com placeholder `<AWS_ACCOUNT_ID>`
+
+**Problema:** O passo [6/12] atualizava os yamls e fazia `git push --quiet 2>/dev/null`. Se o push falhasse silenciosamente, o ArgoCD criado no passo [7/12] sincronizava do git remoto que ainda tinha `<AWS_ACCOUNT_ID>` no campo `image`, resultando em todos os pods com `InvalidImageName`.
+
+**Correcoes em `scripts/tc4-tm.sh`:**
+- Removido `2>/dev/null` do `git push` para erros ficarem visiveis no terminal.
+- Adicionado `kubectl set image` logo apos o passo [7/12] como safety net: forca a imagem correta diretamente no cluster independente do estado de sync do ArgoCD.
+
+---
+
+### 16. --install-monitoring — script saia silenciosamente ao aguardar o Grafana
+
+**Problema:** O script tem `set -e` ativo. A linha `kubectl rollout status deployment/prometheus-grafana --timeout=120s >/dev/null 2>&1` retornava erro se o Grafana nao ficasse pronto em 120 s, e o `set -e` matava o script sem nenhuma mensagem. O dashboard nunca era carregado.
+
+**Correcoes em `scripts/tc4-tm.sh`:**
+- `kubectl rollout status` com `|| true` para nao matar o script no timeout.
+- Loop de ate 3 minutos aguardando o pod do Grafana entrar em estado `Running` antes de executar o `kubectl exec`.
+- Adicionado aviso explicito e instrucao de fallback caso o Grafana nao fique pronto no tempo limite.
+- Corrigida senha do Grafana no `curl` da API: `togglemaster2024` → `tc4-tm` (valor real do `values.yaml`).
+
+---
+
+### 17. Self-Healing — notificacao Discord falhava com "Cannot send an empty message"
+
+**Problema:** O workflow `self-healing.yaml` enviava o payload no formato Discord nativo (`embeds`) para a URL do webhook com sufixo `/slack`. O endpoint `/slack` do Discord aceita apenas formato Slack (`text`/`attachments`), nao `embeds`, retornando erro 50006. Alem disso, o titulo usava shortcode `:robot:` que nao e interpretado no payload da API (precisa ser emoji Unicode).
+
+**Correcoes em `.github/workflows/self-healing.yaml`:**
+- Adicionado `DISCORD_URL="${DISCORD_WEBHOOK%/slack}"` para remover o sufixo automaticamente independente de como o secret foi cadastrado.
+- Substituido `:robot:` pelo emoji Unicode `🤖`.
+
+---
+
+### 18. PodCrashLooping — alerta nunca disparava
+
+**Problema:** A expressao `increase(kube_pod_container_status_restarts_total[15m]) > 3` combinada com `for: 5m` raramente disparava: o backoff exponencial do Kubernetes aumenta progressivamente o intervalo entre restarts (10s → 20s → 40s → 80s → ...). Depois de alguns ciclos o incremento de restarts na janela de 15 min cai abaixo de 3, o alerta volta para "pending" e nunca atinge "firing".
+
+**Correcao em `gitops/monitoring/alerting/prometheus-rules.yaml`:**
+```yaml
+# Antes (fragil)
+expr: increase(kube_pod_container_status_restarts_total{namespace="togglemaster"}[15m]) > 3
+for: 5m
+
+# Depois (direto)
+expr: kube_pod_container_status_waiting_reason{namespace="togglemaster", reason="CrashLoopBackOff"} == 1
+for: 2m
+```
+A nova expressao verifica diretamente o estado `CrashLoopBackOff` reportado pelo Kubernetes, disparando em 2 minutos de forma confiavel.
+
+---
+
+### 19. Microsservicos — health check nao detectava queda do banco ou Redis
+
+**Problema:** Os endpoints `/health` de todos os microsservicos retornavam `200 ok` sem verificar conectividade real com o banco ou Redis. Se o RDS ou o ElastiCache caisse apos a inicializacao do pod, o Kubernetes continuava considerando o pod como `Ready`, nenhum alerta disparava, e so as requisicoes de API retornavam 500.
+
+**Correcoes:**
+- `microservices/auth-service/handlers.go`: `healthHandler` agora executa `db.PingContext` com timeout de 3 s e retorna `503` se o PostgreSQL nao responder.
+- `microservices/evaluation-service/handlers.go`: `healthHandler` agora executa `rdb.Ping` com timeout de 3 s e retorna `503` se o Redis nao responder.
+- `microservices/flag-service/app.py`: `/health` executa `SELECT 1` via pool e retorna `503` se falhar.
+- `microservices/targeting-service/app.py`: idem.
+
+**Cadeia de deteccao resultante:** banco cai → `/health` retorna 503 → readiness probe falha → pod marcado `NotReady` → alerta `PodNotReady` dispara → Discord notifica → `HighErrorRate5xx` dispara → PagerDuty abre incidente → Self-Healing executa `rollout restart`.
