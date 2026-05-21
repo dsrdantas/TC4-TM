@@ -54,18 +54,23 @@ func (a *App) validateKeyHandler(w http.ResponseWriter, r *http.Request) {
 
 	keyHash := hashAPIKey(keyString)
 
+	const selectSQL = "SELECT id FROM api_keys WHERE key_hash = $1 AND is_active = true"
 	ctx, dbSpan := otel.Tracer("auth-service").Start(r.Context(), "db.api_keys.select",
 		trace.WithSpanKind(trace.SpanKindClient),
 		trace.WithAttributes(
 			attribute.String("db.system", "postgresql"),
 			attribute.String("db.operation", "SELECT"),
 			attribute.String("db.sql.table", "api_keys"),
+			attribute.String("db.statement", selectSQL),
+			attribute.String("db.name", "auth_db"),
+			attribute.String("server.address", "postgres"),
+			attribute.Int("server.port", 5432),
 		),
 	)
 	defer dbSpan.End()
 
 	var id int
-	err := a.DB.QueryRowContext(ctx, "SELECT id FROM api_keys WHERE key_hash = $1 AND is_active = true", keyHash).Scan(&id)
+	err := a.DB.QueryRowContext(ctx, selectSQL, keyHash).Scan(&id)
 	if err != nil {
 		dbSpan.RecordError(err)
 		dbSpan.SetStatus(codes.Error, "key validation failed")
@@ -107,21 +112,23 @@ func (a *App) createKeyHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	newKeyHash := hashAPIKey(newKey)
 
+	const insertSQL = "INSERT INTO api_keys (name, key_hash) VALUES ($1, $2) RETURNING id"
 	ctx, dbSpan := otel.Tracer("auth-service").Start(r.Context(), "db.api_keys.insert",
 		trace.WithSpanKind(trace.SpanKindClient),
 		trace.WithAttributes(
 			attribute.String("db.system", "postgresql"),
 			attribute.String("db.operation", "INSERT"),
 			attribute.String("db.sql.table", "api_keys"),
+			attribute.String("db.statement", insertSQL),
+			attribute.String("db.name", "auth_db"),
+			attribute.String("server.address", "postgres"),
+			attribute.Int("server.port", 5432),
 		),
 	)
 	defer dbSpan.End()
 
 	var newID int
-	err = a.DB.QueryRowContext(ctx,
-		"INSERT INTO api_keys (name, key_hash) VALUES ($1, $2) RETURNING id",
-		req.Name, newKeyHash,
-	).Scan(&newID)
+	err = a.DB.QueryRowContext(ctx, insertSQL, req.Name, newKeyHash).Scan(&newID)
 
 	if err != nil {
 		dbSpan.RecordError(err)

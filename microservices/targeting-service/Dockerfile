@@ -56,4 +56,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:8003/health || exit 1
 
 # Comando de inicialização (Gunicorn com OTel auto-instrumentation)
-CMD ["opentelemetry-instrument", "gunicorn", "--bind", "0.0.0.0:8003", "app:app"]
+CMD ["opentelemetry-instrument", "gunicorn", "--bind", "0.0.0.0:8003", "--config", "gunicorn.conf.py", "app:app"]

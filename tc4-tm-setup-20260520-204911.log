@@ -1,0 +1,609 @@
+============================================
+  ToggleMaster - Setup Completo
+============================================
+
+>>> [0/12] Verificacoes iniciais...
+  AWS_ACCESS_KEY_ID: ASIA3IYPFDKG...
+  [OK] terraform, docker disponiveis
+
+>>> [1/12] Provisionando infraestrutura via Terraform...
+============================================
+  ToggleMaster - Terraform Apply
+============================================
+
+>>> [1/4] Verificando/criando backend S3 + DynamoDB...
+============================================
+  ToggleMaster - Terraform Backend Bootstrap
+============================================
+
+  S3 bucket:      tc4-tm
+  DynamoDB table: tc4-terraform-lock
+  Region:         us-east-1
+
+{
+    "BucketRegion": "us-east-1",
+    "AccessPointAlias": false
+}
+  [OK] S3 bucket 'tc4-tm' ja existe
+  [OK] DynamoDB table 'tc4-terraform-lock' ja existe
+
+  Backend pronto. Pode executar terraform init.
+
+
+>>> [2/4] Inicializando Terraform...
+
+[0m[1mInitializing the backend...[0m
+[0m[1mInitializing modules...[0m
+
+[0m[1mInitializing provider plugins...[0m
+- Reusing previous version of hashicorp/aws from the dependency lock file
+- Using previously-installed hashicorp/aws v5.100.0
+
+[0m[1m[32mTerraform has been successfully initialized![0m[32m[0m
+[0m[32m
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.[0m
+
+>>> [3/4] Validando configuracao...
+[32m[1mSuccess![0m The configuration is valid.
+[0m
+
+>>> [4/4] Executando terraform apply (isso pode levar 15-20 minutos)...
+    Recursos criados: VPC, EKS, RDS (x3), Redis, SQS, ECR (x5)
+
+Acquiring state lock. This may take a few moments...
+[0m[1mmodule.ecr.aws_ecr_repository.services["flag-service"]: Refreshing state... [id=flag-service][0m
+[0m[1mmodule.ecr.aws_ecr_repository.services["evaluation-service"]: Refreshing state... [id=evaluation-service][0m
+[0m[1mmodule.messaging.aws_sqs_queue.main: Refreshing state... [id=https://sqs.us-east-1.amazonaws.com/774736517772/togglemaster-queue][0m
+[0m[1mmodule.networking.aws_vpc.main: Refreshing state... [id=vpc-0bbf99b003958efd8][0m
+[0m[1mmodule.networking.aws_eip.nat: Refreshing state... [id=eipalloc-04441d93ca46313ba][0m
+[0m[1mmodule.ecr.aws_ecr_repository.services["targeting-service"]: Refreshing state... [id=targeting-service][0m
+[0m[1mmodule.ecr.aws_ecr_repository.services["auth-service"]: Refreshing state... [id=auth-service][0m
+[0m[1mmodule.databases.aws_dynamodb_table.analytics: Refreshing state... [id=ToggleMasterAnalytics][0m
+[0m[1mmodule.ecr.aws_ecr_repository.services["analytics-service"]: Refreshing state... [id=analytics-service][0m
+[0m[1mmodule.ecr.aws_ecr_lifecycle_policy.services["analytics-service"]: Refreshing state... [id=analytics-service][0m
+[0m[1mmodule.ecr.aws_ecr_lifecycle_policy.services["evaluation-service"]: Refreshing state... [id=evaluation-service][0m
+[0m[1mmodule.ecr.aws_ecr_lifecycle_policy.services["flag-service"]: Refreshing state... [id=flag-service][0m
+[0m[1mmodule.ecr.aws_ecr_lifecycle_policy.services["auth-service"]: Refreshing state... [id=auth-service][0m
+[0m[1mmodule.ecr.aws_ecr_lifecycle_policy.services["targeting-service"]: Refreshing state... [id=targeting-service][0m
+[0m[1mmodule.networking.aws_subnet.public[1]: Refreshing state... [id=subnet-066760d4cfbd40e9f][0m
+[0m[1mmodule.networking.aws_internet_gateway.main: Refreshing state... [id=igw-08c5ec578dd4ed213][0m
+[0m[1mmodule.networking.aws_subnet.public[0]: Refreshing state... [id=subnet-0995695cc4e8c5165][0m
+[0m[1mmodule.networking.aws_subnet.private[1]: Refreshing state... [id=subnet-0ddc27b3c26405159][0m
+[0m[1mmodule.networking.aws_subnet.private[0]: Refreshing state... [id=subnet-062fa3367bf940526][0m
+[0m[1mmodule.networking.aws_security_group.eks_nodes: Refreshing state... [id=sg-0f846c41d2ced174f][0m
+[0m[1mmodule.databases.aws_elasticache_subnet_group.main: Refreshing state... [id=togglemaster-redis-subnet-group][0m
+[0m[1mmodule.databases.aws_db_subnet_group.main: Refreshing state... [id=togglemaster-rds-subnet-group][0m
+[0m[1mmodule.networking.aws_nat_gateway.main: Refreshing state... [id=nat-0deba296849a3890b][0m
+[0m[1mmodule.networking.aws_route_table.public: Refreshing state... [id=rtb-0eae08e032854c6a0][0m
+[0m[1mmodule.networking.aws_security_group.rds: Refreshing state... [id=sg-052e3bcc57fe1a50b][0m
+[0m[1mmodule.networking.aws_security_group.redis: Refreshing state... [id=sg-08a585f112c42677e][0m
+[0m[1mmodule.eks.aws_eks_cluster.main: Refreshing state... [id=togglemaster-cluster][0m
+[0m[1mmodule.networking.aws_route_table.private: Refreshing state... [id=rtb-083a3d9ee2860aaa3][0m
+[0m[1mmodule.networking.aws_route_table_association.public[0]: Refreshing state... [id=rtbassoc-0b65fa957ecefac10][0m
+[0m[1mmodule.networking.aws_route_table_association.public[1]: Refreshing state... [id=rtbassoc-078b7a380763b02a2][0m
+[0m[1mmodule.networking.aws_route_table_association.private[0]: Refreshing state... [id=rtbassoc-0a4a2642f7cf54850][0m
+[0m[1mmodule.networking.aws_route_table_association.private[1]: Refreshing state... [id=rtbassoc-045caf58bcaa50333][0m
+[0m[1mmodule.databases.aws_elasticache_cluster.redis: Refreshing state... [id=togglemaster-redis][0m
+[0m[1mmodule.eks.aws_eks_node_group.main: Refreshing state... [id=togglemaster-cluster:togglemaster-ng][0m
+[0m[1mmodule.databases.aws_db_instance.targeting: Refreshing state... [id=db-PF6J2OBQG44TRD6WYVRHQWMMDE][0m
+[0m[1mmodule.databases.aws_db_instance.auth: Refreshing state... [id=db-3MXUEO4YPA3SHYOM4EZPI42UK4][0m
+[0m[1mmodule.databases.aws_db_instance.flag: Refreshing state... [id=db-IVZXGUU4I2DSGTL4MUOE3DQ2AI][0m
+
+[0m[1m[32mNo changes.[0m[1m Your infrastructure matches the configuration.[0m
+
+[0mTerraform has compared your real infrastructure against your configuration
+and found no differences, so no changes are needed.
+Releasing state lock. This may take a few moments...
+[0m[1m[32m
+Apply complete! Resources: 0 added, 0 changed, 0 destroyed.
+[0m[0m[1m[32m
+Outputs:
+
+[0mauth_db_endpoint = "togglemaster-auth-db.cct71m77x5es.us-east-1.rds.amazonaws.com:5432"
+dynamodb_table_name = "ToggleMasterAnalytics"
+ecr_repository_urls = {
+  "analytics-service" = "774736517772.dkr.ecr.us-east-1.amazonaws.com/analytics-service"
+  "auth-service" = "774736517772.dkr.ecr.us-east-1.amazonaws.com/auth-service"
+  "evaluation-service" = "774736517772.dkr.ecr.us-east-1.amazonaws.com/evaluation-service"
+  "flag-service" = "774736517772.dkr.ecr.us-east-1.amazonaws.com/flag-service"
+  "targeting-service" = "774736517772.dkr.ecr.us-east-1.amazonaws.com/targeting-service"
+}
+eks_cluster_endpoint = "https://739C807B41A711579A1ACEBF9DCFAA39.gr7.us-east-1.eks.amazonaws.com"
+eks_cluster_name = "togglemaster-cluster"
+flag_db_endpoint = "togglemaster-flag-db.cct71m77x5es.us-east-1.rds.amazonaws.com:5432"
+redis_endpoint = "togglemaster-redis.gzs1vn.0001.use1.cache.amazonaws.com"
+sqs_queue_url = "https://sqs.us-east-1.amazonaws.com/774736517772/togglemaster-queue"
+targeting_db_endpoint = "togglemaster-targeting-db.cct71m77x5es.us-east-1.rds.amazonaws.com:5432"
+vpc_id = "vpc-0bbf99b003958efd8"
+
+============================================
+  Terraform Apply concluido!
+============================================
+
+Outputs:
+auth_db_endpoint = "togglemaster-auth-db.cct71m77x5es.us-east-1.rds.amazonaws.com:5432"
+dynamodb_table_name = "ToggleMasterAnalytics"
+ecr_repository_urls = {
+  "analytics-service" = "774736517772.dkr.ecr.us-east-1.amazonaws.com/analytics-service"
+  "auth-service" = "774736517772.dkr.ecr.us-east-1.amazonaws.com/auth-service"
+  "evaluation-service" = "774736517772.dkr.ecr.us-east-1.amazonaws.com/evaluation-service"
+  "flag-service" = "774736517772.dkr.ecr.us-east-1.amazonaws.com/flag-service"
+  "targeting-service" = "774736517772.dkr.ecr.us-east-1.amazonaws.com/targeting-service"
+}
+eks_cluster_endpoint = "https://739C807B41A711579A1ACEBF9DCFAA39.gr7.us-east-1.eks.amazonaws.com"
+eks_cluster_name = "togglemaster-cluster"
+flag_db_endpoint = "togglemaster-flag-db.cct71m77x5es.us-east-1.rds.amazonaws.com:5432"
+redis_endpoint = "togglemaster-redis.gzs1vn.0001.use1.cache.amazonaws.com"
+sqs_queue_url = "https://sqs.us-east-1.amazonaws.com/774736517772/togglemaster-queue"
+targeting_db_endpoint = "togglemaster-targeting-db.cct71m77x5es.us-east-1.rds.amazonaws.com:5432"
+vpc_id = "vpc-0bbf99b003958efd8"
+
+
+>>> [2/12] Configurando kubectl para o cluster EKS...
+Updated context arn:aws:eks:us-east-1:774736517772:cluster/togglemaster-cluster in /Users/danieldantas/.kube/config
+NAME                          STATUS   ROLES    AGE   VERSION
+ip-10-0-11-245.ec2.internal   Ready    <none>   32m   v1.33.11-eks-7fcd7ec
+ip-10-0-22-126.ec2.internal   Ready    <none>   32m   v1.33.11-eks-7fcd7ec
+ip-10-0-22-167.ec2.internal   Ready    <none>   32m   v1.33.11-eks-7fcd7ec
+
+>>> [3/12] Gerando secrets a partir dos outputs do Terraform...
+============================================
+  ToggleMaster - Gerador de Secrets
+============================================
+
+>>> Lendo outputs do Terraform...
+  auth_db:    togglemaster-auth-db.cct71m77x5es.us-east-1.rds.amazonaws.com
+  flag_db:    togglemaster-flag-db.cct71m77x5es.us-east-1.rds.amazonaws.com
+  targeting:  togglemaster-targeting-db.cct71m77x5es.us-east-1.rds.amazonaws.com
+  redis:      togglemaster-redis.gzs1vn.0001.use1.cache.amazonaws.com
+  sqs:        https://sqs.us-east-1.amazonaws.com/774736517772/togglemaster-queue
+
+>>> Lendo db_password do terraform.tfvars...
+  db_password: ****enha
+
+>>> Verificando credenciais AWS...
+  AWS_ACCESS_KEY_ID: ASIA3IYPFDKG...
+
+>>> MASTER_KEY: e6aa51d9...
+
+>>> Gerando secrets em /Users/danieldantas/Documents/vscode.nosync/fiap/TC4-TM/gitops ...
+
+  [OK] gitops/auth-service/secret.yaml
+  [OK] gitops/auth-service/db/secret.yaml
+  [OK] gitops/flag-service/secret.yaml
+  [OK] gitops/flag-service/db/secret.yaml
+  [OK] gitops/targeting-service/secret.yaml
+  [OK] gitops/targeting-service/db/secret.yaml
+  [OK] gitops/evaluation-service/secret.yaml
+  [OK] gitops/analytics-service/secret.yaml
+
+============================================
+  8 secrets gerados com sucesso!
+============================================
+
+Proximo passo - aplicar no cluster:
+  ./scripts/tc4-tm.sh --apply-secrets
+
+NOTA: O SERVICE_API_KEY do evaluation-service sera
+gerado automaticamente apos o auth-service subir.
+Execute: ./scripts/tc4-tm.sh --generate-api-key
+
+
+>>> [4/12] Instalando ArgoCD...
+  ArgoCD namespace ja existe, pulando instalacao.
+  Aguardando ArgoCD ficar pronto...
+deployment.apps/argocd-server condition met
+service/argocd-server patched (no change)
+  [OK] ArgoCD instalado
+
+>>> [5/12] Aplicando secrets no cluster...
+============================================
+  ToggleMaster - Aplicar Secrets no Cluster
+============================================
+
+>>> Verificando conexao com o cluster...
+  [OK] Conectado ao cluster
+
+>>> Garantindo namespace togglemaster...
+namespace/togglemaster configured
+
+>>> Aplicando secrets...
+secret/auth-service-secret configured
+  [OK] auth-service/secret.yaml
+secret/auth-db-secret configured
+  [OK] auth-service/db/secret.yaml
+secret/flag-service-secret configured
+  [OK] flag-service/secret.yaml
+secret/flag-db-secret configured
+  [OK] flag-service/db/secret.yaml
+secret/targeting-service-secret configured
+  [OK] targeting-service/secret.yaml
+secret/targeting-db-secret configured
+  [OK] targeting-service/db/secret.yaml
+secret/evaluation-service-secret configured
+  [OK] evaluation-service/secret.yaml
+secret/analytics-service-secret configured
+  [OK] analytics-service/secret.yaml
+
+>>> Verificando secrets criados...
+
+analytics-service-secret    Opaque   4     30m
+auth-db-secret              Opaque   4     30m
+auth-service-secret         Opaque   3     30m
+evaluation-service-secret   Opaque   6     30m
+flag-db-secret              Opaque   4     30m
+flag-service-secret         Opaque   2     30m
+targeting-db-secret         Opaque   4     30m
+targeting-service-secret    Opaque   2     30m
+
+============================================
+  Secrets aplicados com sucesso!
+============================================
+
+Proximo passo:
+  kubectl apply -f argocd/applications.yaml
+
+  Reiniciando auth-service para carregar o novo MASTER_KEY...
+deployment.apps/auth-service restarted
+Waiting for deployment "auth-service" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "auth-service" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "auth-service" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "auth-service" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "auth-service" rollout to finish: 1 old replicas are pending termination...
+deployment "auth-service" successfully rolled out
+  [OK] auth-service atualizado com o novo MASTER_KEY
+
+>>> [6/12] Build e push de imagens Docker...
+  ECR Registry: 774736517772.dkr.ecr.us-east-1.amazonaws.com
+  GitHub User:  dsrdantas
+  Atualizando ECR nos manifestos...
+    [OK] auth-service → 774736517772.dkr.ecr.us-east-1.amazonaws.com/auth-service:latest
+    [OK] flag-service → 774736517772.dkr.ecr.us-east-1.amazonaws.com/flag-service:latest
+    [OK] targeting-service → 774736517772.dkr.ecr.us-east-1.amazonaws.com/targeting-service:latest
+    [OK] evaluation-service → 774736517772.dkr.ecr.us-east-1.amazonaws.com/evaluation-service:latest
+    [OK] analytics-service → 774736517772.dkr.ecr.us-east-1.amazonaws.com/analytics-service:latest
+    [OK] argocd/applications.yaml atualizado (GitHub: dsrdantas)
+  Commitando manifestos atualizados no git...
+    Manifestos ja estavam atualizados
+
+Login Succeeded
+  Imagens ja existem no ECR, pulando build.
+
+>>> [7/12] Aplicando ArgoCD Applications...
+appproject.argoproj.io/togglemaster unchanged
+application.argoproj.io/auth-service unchanged
+application.argoproj.io/flag-service unchanged
+application.argoproj.io/targeting-service unchanged
+application.argoproj.io/evaluation-service unchanged
+application.argoproj.io/analytics-service unchanged
+application.argoproj.io/togglemaster-shared unchanged
+application.argoproj.io/monitoring-namespace unchanged
+  [OK] Applications criadas
+  Forcando imagens corretas no cluster (safety net)...
+  [OK] Imagens atualizadas
+
+>>> [8/12] Instalando NGINX Ingress Controller...
+namespace/ingress-nginx unchanged
+serviceaccount/ingress-nginx unchanged
+serviceaccount/ingress-nginx-admission unchanged
+role.rbac.authorization.k8s.io/ingress-nginx unchanged
+role.rbac.authorization.k8s.io/ingress-nginx-admission unchanged
+clusterrole.rbac.authorization.k8s.io/ingress-nginx unchanged
+clusterrole.rbac.authorization.k8s.io/ingress-nginx-admission unchanged
+rolebinding.rbac.authorization.k8s.io/ingress-nginx unchanged
+rolebinding.rbac.authorization.k8s.io/ingress-nginx-admission unchanged
+clusterrolebinding.rbac.authorization.k8s.io/ingress-nginx unchanged
+clusterrolebinding.rbac.authorization.k8s.io/ingress-nginx-admission unchanged
+configmap/ingress-nginx-controller configured
+service/ingress-nginx-controller unchanged
+service/ingress-nginx-controller-admission unchanged
+deployment.apps/ingress-nginx-controller configured
+job.batch/ingress-nginx-admission-create unchanged
+job.batch/ingress-nginx-admission-patch unchanged
+ingressclass.networking.k8s.io/nginx unchanged
+validatingwebhookconfiguration.admissionregistration.k8s.io/ingress-nginx-admission configured
+  [OK] NGINX Ingress instalado
+
+>>> [9/12] Aguardando pods do ToggleMaster ficarem prontos...
+  (isso pode levar 2-5 minutos)
+  Aguardando auth-service... deployment "auth-service" successfully rolled out
+  Aguardando flag-service... deployment "flag-service" successfully rolled out
+  Aguardando targeting-service... deployment "targeting-service" successfully rolled out
+  Aguardando evaluation-service... deployment "evaluation-service" successfully rolled out
+  Aguardando analytics-service... deployment "analytics-service" successfully rolled out
+
+NAME                                  READY   STATUS      RESTARTS   AGE
+analytics-service-6f8b5cf4d8-b892v    1/1     Running     0          10m
+analytics-service-6f8b5cf4d8-fpd9x    1/1     Running     0          25m
+auth-db-init-job-ggvpb                0/1     Completed   0          25m
+auth-service-59f469bdc7-wsdhq         1/1     Running     0          82s
+auth-service-59f469bdc7-xpzvp         1/1     Running     0          59s
+evaluation-service-5f949569c7-w9w5w   1/1     Running     0          25m
+evaluation-service-5f949569c7-wp87p   1/1     Running     0          10m
+flag-db-init-job-4pzmb                0/1     Completed   0          25m
+flag-service-64f8f64cbc-95669         1/1     Running     0          3m24s
+flag-service-64f8f64cbc-gd2mb         1/1     Running     0          10m
+targeting-db-init-job-444wm           0/1     Completed   0          25m
+targeting-service-8565847c4f-jgpl2    1/1     Running     0          10m
+targeting-service-8565847c4f-xr5fw    1/1     Running     0          25m
+
+>>> [10/12] Gerando SERVICE_API_KEY...
+============================================
+  ToggleMaster - Gerar SERVICE_API_KEY
+============================================
+
+>>> Verificando se auth-service esta Running...
+  [OK] auth-service esta Running
+
+>>> Abrindo port-forward para auth-service...
+Forwarding from 127.0.0.1:8001 -> 8001
+Forwarding from [::1]:8001 -> 8001
+>>> Obtendo MASTER_KEY do pod em execucao...
+  [OK] MASTER_KEY: e6aa51d9... (lida do pod auth-service-59f469bdc7-wsdhq)
+
+>>> Gerando API key via auth-service...
+Handling connection for 8001
+  [OK] API Key gerada: tm_key_9bc72cbd...
+
+>>> Atualizando evaluation-service-secret com a nova API key...
+secret/evaluation-service-secret patched
+scripts/tc4-tm.sh: line 400: 93790 Terminated: 15          kubectl port-forward svc/auth-service 8001:8001 -n togglemaster
+  [OK] evaluation-service-secret atualizado
+
+>>> Reiniciando pods do evaluation-service...
+deployment.apps/evaluation-service restarted
+Waiting for deployment "evaluation-service" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "evaluation-service" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "evaluation-service" rollout to finish: 1 out of 2 new replicas have been updated...
+Waiting for deployment "evaluation-service" rollout to finish: 1 old replicas are pending termination...
+Waiting for deployment "evaluation-service" rollout to finish: 1 old replicas are pending termination...
+deployment "evaluation-service" successfully rolled out
+
+============================================
+  SERVICE_API_KEY configurada com sucesso!
+============================================
+
+API Key: tm_key_9bc72cbde38d962007d572c26f98ead4e67e636943517cc9cebd4aa16b6c4306
+
+Todos os servicos devem estar operacionais agora.
+Verifique: kubectl get pods -n togglemaster
+
+
+>>> [11/12] Garantindo namespace monitoring e secrets...
+  [OK] namespace monitoring
+secret/newrelic-license-key created
+  [OK] New Relic secret aplicado
+
+>>> [12/12] Instalando Monitoring Stack (Prometheus + Loki + Grafana + OTel)...
+============================================
+  ToggleMaster - Monitoring Stack Installer
+  Phase 4: Observability & Self-Healing
+============================================
+
+[1/6] Creating monitoring namespace...
+namespace/monitoring configured
+[2/6] Adding Helm repositories...
+"prometheus-community" already exists with the same configuration, skipping
+"grafana" already exists with the same configuration, skipping
+"open-telemetry" already exists with the same configuration, skipping
+Hang tight while we grab the latest from your chart repositories...
+...Successfully got an update from the "jitterbit" chart repository
+...Successfully got an update from the "zabbix-community" chart repository
+...Unable to get an update from the "jitterbitdev" chart repository (https://jitterb.jfrog.io/artifactory/helm-jitterbitdev-virtual):
+	failed to fetch https://jitterb.jfrog.io/artifactory/helm-jitterbitdev-virtual/index.yaml : 401 
+...Successfully got an update from the "jetstack" chart repository
+...Successfully got an update from the "openziti" chart repository
+...Successfully got an update from the "fluent" chart repository
+...Successfully got an update from the "external-secrets" chart repository
+...Successfully got an update from the "eks" chart repository
+...Successfully got an update from the "open-telemetry" chart repository
+...Successfully got an update from the "bitnami" chart repository
+...Successfully got an update from the "stevehipwell" chart repository
+...Successfully got an update from the "prometheus-community" chart repository
+...Successfully got an update from the "grafana" chart repository
+Update Complete. ⎈Happy Helming!⎈
+[3/6] Installing kube-prometheus-stack (Prometheus + Grafana + Alertmanager)...
+Release "prometheus" does not exist. Installing it now.
+NAME: prometheus
+LAST DEPLOYED: Wed May 20 20:53:17 2026
+NAMESPACE: monitoring
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+kube-prometheus-stack has been installed. Check its status by running:
+  kubectl --namespace monitoring get pods -l "release=prometheus"
+
+Get Grafana 'admin' user password by running:
+
+  kubectl --namespace monitoring get secrets prometheus-grafana -o jsonpath="{.data.admin-password}" | base64 -d ; echo
+
+Access Grafana local instance:
+
+  export POD_NAME=$(kubectl --namespace monitoring get pod -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=prometheus" -oname)
+  kubectl --namespace monitoring port-forward $POD_NAME 3000
+
+Get your grafana admin user password by running:
+
+  kubectl get secret --namespace monitoring -l app.kubernetes.io/component=admin-secret -o jsonpath="{.items[0].data.admin-password}" | base64 --decode ; echo
+
+
+Visit https://github.com/prometheus-operator/kube-prometheus for instructions on how to create & configure Alertmanager and Prometheus instances using the Operator.
+[4/6] Installing Loki...
+Release "loki" does not exist. Installing it now.
+NAME: loki
+LAST DEPLOYED: Wed May 20 20:55:12 2026
+NAMESPACE: monitoring
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+***********************************************************************
+ Welcome to Grafana Loki
+ Chart version: 7.0.0
+ Chart Name: loki
+ Loki version: 3.6.7
+***********************************************************************
+
+** Please be patient while the chart is being deployed **
+
+Tip:
+
+  Watch the deployment status using the command: kubectl get pods -w --namespace monitoring
+
+If pods are taking too long to schedule make sure pod affinity can be fulfilled in the current cluster.
+
+***********************************************************************
+Installed components:
+***********************************************************************
+* loki
+
+Loki has been deployed as a single binary.
+This means a single pod is handling reads and writes. You can scale that pod vertically by adding more CPU and memory resources.
+
+
+***********************************************************************
+Sending logs to Loki
+***********************************************************************
+
+You can send logs from inside the cluster using the cluster DNS:
+
+http://loki.monitoring.svc.cluster.local:3100/loki/api/v1/push
+
+You can test to send data from outside the cluster by port-forwarding the gateway to your local machine:
+
+  kubectl port-forward --namespace monitoring svc/loki 3100:3100 &
+
+And then using http://127.0.0.1:3100/loki/api/v1/push URL as shown below:
+
+```
+curl -H "Content-Type: application/json" -XPOST -s "http://127.0.0.1:3100/loki/api/v1/push"  \
+--data-raw "{\"streams\": [{\"stream\": {\"job\": \"test\"}, \"values\": [[\"$(date +%s)000000000\", \"fizzbuzz\"]]}]}"
+```
+
+Then verify that Loki did receive the data using the following command:
+
+```
+curl "http://127.0.0.1:3100/loki/api/v1/query_range" --data-urlencode 'query={job="test"}' | jq .data.result
+```
+
+***********************************************************************
+Connecting Grafana to Loki
+***********************************************************************
+
+If Grafana operates within the cluster, you'll set up a new Loki datasource by utilizing the following URL:
+
+http://loki.monitoring.svc.cluster.local:3100/
+[5/6] Installing Promtail...
+Release "promtail" does not exist. Installing it now.
+WARNING: This chart is deprecated
+NAME: promtail
+LAST DEPLOYED: Wed May 20 20:56:12 2026
+NAMESPACE: monitoring
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+***********************************************************************
+ Welcome to Grafana Promtail
+ Chart version: 6.17.1
+ Promtail version: 3.5.1
+***********************************************************************
+
+Verify the application is working by running these commands:
+* kubectl --namespace monitoring port-forward daemonset/promtail 3101
+* curl http://127.0.0.1:3101/metrics
+[6/6] Installing OpenTelemetry Collector...
+Release "otel-collector" does not exist. Installing it now.
+NAME: otel-collector
+LAST DEPLOYED: Wed May 20 20:56:34 2026
+NAMESPACE: monitoring
+STATUS: deployed
+REVISION: 1
+TEST SUITE: None
+NOTES:
+[WARNING] config.service.telemetry.metrics.address should not be used and will be removed in the future. Use internalTelemetryViaOTLP or config.service.telemetry.metrics.readers  instead"
+
+============================================
+  Monitoring Stack Installed Successfully!
+============================================
+
+Applying Alertmanager custom configuration...
+secret/alertmanager-prometheus-kube-prometheus-alertmanager serverside-applied
+  [OK] Alertmanager config applied (PagerDuty + Discord + Self-Healing)
+Applying ToggleMaster alert rules...
+prometheusrule.monitoring.coreos.com/togglemaster-alerts created
+  [OK] PrometheusRules applied
+Loading ToggleMaster Grafana dashboard...
+  Waiting for Grafana to be ready (up to 5 min)...
+deployment "prometheus-grafana" successfully rolled out
+  Loki datasource UID: P8E80F9AEF21F6940
+configmap/togglemaster-dashboard created
+Deploying self-healing bridge...
+secret/self-healing-bridge-secret created
+  [OK] self-healing-bridge-secret aplicado
+configmap/self-healing-bridge created
+deployment.apps/self-healing-bridge created
+service/self-healing-bridge created
+  [OK] self-healing-bridge deployado
+
+--- Access Information ---
+
+Grafana:
+  URL:      kubectl get svc prometheus-grafana -n monitoring -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
+  User:     admin
+  Password: tc4-tm
+
+Prometheus:
+  Internal: http://prometheus-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090
+
+Loki:
+  Internal: http://loki.monitoring.svc.cluster.local:3100
+
+OTel Collector:
+  gRPC:     otel-collector-opentelemetry-collector.monitoring.svc.cluster.local:4317
+  HTTP:     otel-collector-opentelemetry-collector.monitoring.svc.cluster.local:4318
+
+--- IMPORTANT ---
+Don't forget to apply the New Relic secret:
+  cp gitops/monitoring/newrelic-secret.yaml.example gitops/monitoring/newrelic-secret.yaml
+  # Edit with your license key
+  kubectl apply -f gitops/monitoring/newrelic-secret.yaml
+
+
+
+============================================
+  SETUP COMPLETO!
+============================================
+
+ArgoCD:
+  URL:   https://a6b1c5b2c85b342b787e5bc0e82b4b4f-674380462.us-east-1.elb.amazonaws.com
+  User:  admin
+  Pass:  -QlMX5OpKXKtg3Vz
+
+Grafana (Monitoring):
+  URL:   http://a0b99eeafb112441f8ccb7826d8627f3-1773928628.us-east-1.elb.amazonaws.com
+  User:  admin
+  Pass:  tc4-tm
+
+OTel Collector:
+  gRPC: otel-collector-opentelemetry-collector.monitoring.svc.cluster.local:4317
+  HTTP: otel-collector-opentelemetry-collector.monitoring.svc.cluster.local:4318
+
+Verificar pods:
+  kubectl get pods -n togglemaster
+  kubectl get pods -n monitoring
+
+Testar health:
+  kubectl port-forward svc/auth-service 8001:8001 -n togglemaster &
+  curl http://localhost:8001/health
+
+Atualizar credenciais AWS (a cada 4h):
+  ./scripts/tc4-tm.sh --update-aws-credentials
+

@@ -55,4 +55,4 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:8002/health || exit 1
 
 # Comando final: gunicorn servindo Flask com OTel auto-instrumentation
-CMD ["opentelemetry-instrument", "gunicorn", "--bind", "0.0.0.0:8002", "app:app"]
+CMD ["opentelemetry-instrument", "gunicorn", "--bind", "0.0.0.0:8002", "--config", "gunicorn.conf.py", "app:app"]
