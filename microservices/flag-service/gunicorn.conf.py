@@ -35,6 +35,13 @@ def _setup_otel_worker():
     from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
     from opentelemetry.baggage.propagation import W3CBaggagePropagator
 
+    # The OTel API only allows set_tracer_provider() once (returns early on
+    # subsequent calls to protect against accidental double-init in a single
+    # process). In forked workers we MUST replace the dead master provider,
+    # so we reset the internal sentinel first.
+    trace_api._TRACER_PROVIDER = None
+    metrics_api._METER_PROVIDER = None
+
     endpoint = os.getenv(
         "OTEL_EXPORTER_OTLP_ENDPOINT",
         "http://otel-collector-opentelemetry-collector.monitoring.svc.cluster.local:4318",
@@ -76,7 +83,12 @@ def _setup_otel_worker():
 
 def _reinstrument():
     """Uninstrument then re-instrument each library so its cached tracer
-    references the new TracerProvider set above, not the dead master one."""
+    references the new TracerProvider, not the dead master one.
+
+    skip_dep_check=True is required because psycopg2-binary satisfies the
+    psycopg2 API but has a different package name, causing a false-positive
+    DependencyConflict when pkg_resources checks the requirement string.
+    """
     for mod_path, cls_name in [
         ("opentelemetry.instrumentation.flask", "FlaskInstrumentor"),
         ("opentelemetry.instrumentation.psycopg2", "Psycopg2Instrumentor"),
@@ -88,16 +100,25 @@ def _reinstrument():
             instrumentor = getattr(mod, cls_name)()
             if instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.uninstrument()
-            instrumentor.instrument()
+            instrumentor.instrument(skip_dep_check=True)
         except Exception as exc:
             _log.warning("[OTel] failed to reinstrument %s: %s", cls_name, exc)
 
 
 def _refresh_db_pool():
-    """Close all connections in the pool so the next getconn() call creates
-    new traced connections (psycopg2.connect is now patched by _reinstrument)."""
+    """Close idle connections in the pool so next getconn() creates new ones
+    via the re-patched psycopg2.connect, producing properly traced connections.
+
+    Does NOT call pool.closeall() — that sets pool.closed=True permanently.
+    Instead we empty the idle list directly, leaving the pool object intact.
+    """
     try:
         from app import pool
-        pool.closeall()
+        for conn in list(pool._pool):
+            try:
+                conn.close()
+            except Exception:
+                pass
+        pool._pool.clear()
     except Exception as exc:
         _log.warning("[OTel] failed to refresh DB pool: %s", exc)

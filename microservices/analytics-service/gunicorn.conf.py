@@ -35,6 +35,13 @@ def _setup_otel_worker():
     from opentelemetry.trace.propagation.tracecontext import TraceContextTextMapPropagator
     from opentelemetry.baggage.propagation import W3CBaggagePropagator
 
+    # The OTel API only allows set_tracer_provider() once (returns early on
+    # subsequent calls to protect against accidental double-init in a single
+    # process). In forked workers we MUST replace the dead master provider,
+    # so we reset the internal sentinel first.
+    trace_api._TRACER_PROVIDER = None
+    metrics_api._METER_PROVIDER = None
+
     endpoint = os.getenv(
         "OTEL_EXPORTER_OTLP_ENDPOINT",
         "http://otel-collector-opentelemetry-collector.monitoring.svc.cluster.local:4318",
@@ -75,7 +82,11 @@ def _setup_otel_worker():
 
 def _reinstrument():
     """Uninstrument then re-instrument each library so its cached tracer
-    references the new TracerProvider set above, not the dead master one."""
+    references the new TracerProvider, not the dead master one.
+
+    skip_dep_check=True bypasses pkg_resources package name checks — needed
+    for botocore instrumentation which may have similar naming quirks.
+    """
     for mod_path, cls_name in [
         ("opentelemetry.instrumentation.flask", "FlaskInstrumentor"),
         ("opentelemetry.instrumentation.botocore", "BotocoreInstrumentor"),
@@ -87,6 +98,6 @@ def _reinstrument():
             instrumentor = getattr(mod, cls_name)()
             if instrumentor.is_instrumented_by_opentelemetry:
                 instrumentor.uninstrument()
-            instrumentor.instrument()
+            instrumentor.instrument(skip_dep_check=True)
         except Exception as exc:
             _log.warning("[OTel] failed to reinstrument %s: %s", cls_name, exc)
