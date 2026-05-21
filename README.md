@@ -216,6 +216,24 @@ kubectl apply -f gitops/monitoring/newrelic-secret.yaml
 
 ---
 
+### `gitops/monitoring/self-healing-bridge/secret.yaml`
+
+O bridge precisa de um Fine-grained PAT do GitHub com permissao **Actions: write** no repositorio `dsrdantas/TC4-TM`. Este secret **nao deve ser commitado** — crie-o diretamente no cluster:
+
+```bash
+kubectl create secret generic self-healing-bridge-secret \
+  --namespace monitoring \
+  --from-literal=GITHUB_TOKEN="<seu-fine-grained-pat>"
+```
+
+| Campo | Como obter |
+|-------|------------|
+| `GITHUB_TOKEN` | GitHub > Settings > Developer settings > Personal access tokens > Fine-grained tokens > New token > Repository permissions: **Actions: Read and Write** |
+
+> **Atencao:** este `GITHUB_TOKEN` e diferente do automatico dos workflows. E um PAT pessoal criado manualmente para que o bridge (rodando no cluster) possa chamar a API do GitHub de fora do contexto de um workflow.
+
+---
+
 ### `terraform/terraform.tfvars`
 
 Crie a partir do exemplo antes de rodar o Terraform:
@@ -280,6 +298,11 @@ kubectl apply -f gitops/monitoring/newrelic-secret.yaml
 #   pagerduty_routing_key: <sua routing key do PagerDuty>
 #   discord_webhook_url:   <seu webhook Discord>
 kubectl apply -f gitops/monitoring/alerting/alertmanager-secret.yaml
+
+# Self-Healing Bridge (Fine-grained PAT com Actions: write)
+kubectl create secret generic self-healing-bridge-secret \
+  --namespace monitoring \
+  --from-literal=GITHUB_TOKEN="<seu-fine-grained-pat>"
 ```
 
 **Como obter a PagerDuty Routing Key:**
@@ -318,17 +341,70 @@ kubectl port-forward svc/prometheus-grafana 3000:80 -n monitoring
 
 ---
 
+## Self-Healing Bridge — Arquitetura
+
+O self-healing e implementado em duas partes que trabalham em conjunto:
+
+```
+Alerta dispara (CrashLoopBackOff, HighErrorRate5xx, PodNotReady)
+        │
+        ▼
+  Alertmanager
+  (routing: self-healing-bridge receiver)
+        │  POST http://self-healing-bridge.monitoring:9095/
+        ▼
+  self-healing-bridge (pod em monitoring)
+  bridge.py: extrai servico dos labels do alerta
+  (checa labels: service, service_name ou prefixo do pod name)
+        │  POST https://api.github.com/repos/dsrdantas/TC4-TM/dispatches
+        │  { event_type: "self-healing",
+        │    client_payload: { service: "flag-service", alert: "PodCrashLooping" } }
+        ▼
+  GitHub Actions — self-healing.yaml
+  1. aws-actions/configure-aws-credentials
+  2. aws eks update-kubeconfig
+  3. kubectl get pods (BEFORE)
+  4. kubectl rollout restart deployment/<service> -n togglemaster
+  5. kubectl rollout status --timeout=120s
+  6. kubectl get pods (AFTER)
+  7. Notificacao Discord (embed nativo — sem /slack)
+  8. GitHub Step Summary
+```
+
+**Componentes:**
+
+| Componente | Localizacao | Funcao |
+|-----------|------------|--------|
+| `self-healing-bridge` | `gitops/monitoring/self-healing-bridge/deployment.yaml` | HTTP server Python 3.12 na porta 9095; traduz webhooks Alertmanager → GitHub API |
+| `self-healing-bridge-secret` | K8s Secret no namespace `monitoring` | Fine-grained PAT com Actions: write |
+| `self-healing.yaml` | `.github/workflows/self-healing.yaml` | Executa `kubectl rollout restart` e notifica Discord |
+
+---
+
 ## Testar o Fluxo de Incidente (Demo)
 
 ```bash
 # 1. Injetar falha (escala servico para 0 replicas)
 ./scripts/tc4-tm.sh --inject-fault
 
-# 2. Observar no Grafana: alerta PodCrashLooping dispara (~2-5 min)
+# 2. Observar no Grafana: alerta PodCrashLooping dispara (~2 min)
 # 3. PagerDuty: incidente criado automaticamente
 # 4. Discord: notificacao recebida
 # 5. GitHub Actions: self-healing executa rollout restart
 # 6. Servico restaurado automaticamente
+
+# Disparar self-healing manualmente (sem precisar de alerta):
+./scripts/tc4-tm.sh --test-self-healing
+
+# Ou via gh CLI diretamente:
+gh workflow run self-healing.yaml \
+  -f service=flag-service \
+  -f alert=ManualTrigger
+
+# Ou via GitHub API (simula o bridge):
+gh api repos/dsrdantas/TC4-TM/dispatches \
+  -f event_type=self-healing \
+  --raw-field client_payload='{"service":"auth-service","alert":"HighErrorRate5xx"}'
 ```
 
 ---
@@ -554,3 +630,62 @@ A nova expressao verifica diretamente o estado `CrashLoopBackOff` reportado pelo
 - `microservices/targeting-service/app.py`: idem.
 
 **Cadeia de deteccao resultante:** banco cai → `/health` retorna 503 → readiness probe falha → pod marcado `NotReady` → alerta `PodNotReady` dispara → Discord notifica → `HighErrorRate5xx` dispara → PagerDuty abre incidente → Self-Healing executa `rollout restart`.
+
+---
+
+### 20. Servicos Python — traces sem spans de banco/Redis apos fork do Gunicorn
+
+**Problema:** O New Relic exibia apenas o span HTTP raiz (`GET /flags`) nos traces dos servicos Python; spans de banco de dados (psycopg2) e chamadas HTTP downstream nunca apareciam. O `opentelemetry-instrument` configura o SDK (incluindo o `BatchSpanProcessor`) no processo master do Gunicorn. Ao fazer `os.fork()` para criar os workers, o Python **nao clona threads** — o background thread do `BatchSpanProcessor` morre em cada worker. Os spans sao enfileirados no worker mas nunca exportados.
+
+**Correcao:** Criado `gunicorn.conf.py` em cada servico Python com um hook `post_fork` que reinicializa completamente o SDK OTel em cada worker. Tres detalhes criticos na implementacao:
+
+1. **Reset do sentinel do OTel API:** `set_tracer_provider()` retorna silenciosamente se um provider ja estiver registrado. E necessario resetar `trace_api._TRACER_PROVIDER = None` e `metrics_api._METER_PROVIDER = None` antes de instalar os novos providers no worker.
+
+2. **psycopg2-binary vs psycopg2:** `pkg_resources` falha ao validar `psycopg2-binary` contra o requisito `psycopg2 >= 2.7.3.1` porque os nomes sao diferentes. Solucao: `instrumentor.instrument(skip_dep_check=True)`.
+
+3. **Pool de conexoes nao pode usar `closeall()`:** `SimpleConnectionPool.closeall()` seta `pool.closed = True` permanentemente; qualquer `getconn()` subsequente lanca `PoolError("connection pool is closed")`. Solucao: fechar conexoes individualmente e limpar a lista interna sem marcar o pool como fechado:
+```python
+for conn in list(pool._pool):
+    try: conn.close()
+    except Exception: pass
+pool._pool.clear()
+```
+
+Arquivos criados: `microservices/flag-service/gunicorn.conf.py`, `microservices/targeting-service/gunicorn.conf.py`, `microservices/analytics-service/gunicorn.conf.py`.
+Dockerfiles atualizados com `--config gunicorn.conf.py` no CMD.
+
+---
+
+### 21. Ingress — todos os endpoints retornavam 404
+
+**Problema:** Apos a implantacao do monitoring stack, todos os endpoints de negocio (`/flags`, `/targeting`, `/rules`, `/evaluate`, `/analytics`) retornavam 404. O ingress usava `nginx.ingress.kubernetes.io/rewrite-target: /$2` combinado com paths regex como `/flags(/|$)(.*)`. Esta anotacao faz o NGINX reescrever a URL antes de encaminhar: `/flags/my-flag` virava `/my-flag`, e `/flags` virava `/`. As rotas Flask incluem o prefixo (`/flags`, `/flags/<name>`), portanto nenhuma rota era correspondida.
+
+**Correcao em `gitops/ingress.yaml`:**
+- Removida a anotacao `rewrite-target`
+- Removida a anotacao `use-regex`
+- Todos os `pathType: ImplementationSpecific` com regex substituidos por `pathType: Prefix` com caminhos simples
+
+```yaml
+# Antes (quebrado)
+metadata:
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/use-regex: "true"
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /flags(/|$)(.*)
+            pathType: ImplementationSpecific
+
+# Depois (correto)
+# (sem anotacoes de rewrite)
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /flags
+            pathType: Prefix
+```
+
+> **Atencao ArgoCD:** alteracoes manuais via `kubectl apply` sao revertidas pelo `selfHeal` do ArgoCD se o git nao for atualizado. A correcao precisa ser commitada e empurrada para que o ArgoCD sincronize o estado correto.
